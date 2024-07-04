@@ -50,10 +50,10 @@ $config = [
             'showScriptName' => false,
             'rules' => [
                 // '<controller:\w+>/<action:\w+>/<id:\d+>' => '<controller>/<action:\w>',
-
-                'DELETE user/deletebatch/<user_id>' => 'user/delete-batch',
-                'PUT user/updatebatch/<user_id>' => 'user/update-batch',
-
+                // 'DELETE user/deletebatch/<user_id>' => 'user/delete-batch',
+                // 'PUT user/updatebatch/<user_id>' => 'user/update-batch',
+                // 'POST category/delete/<categories_id>' => 'category/delete',
+                // 'POST product/update/<product_id>' => 'product/update',
                 // // 'api/user/login' => 'user/login',
                 // // 'POST api/user/login' => 'api/user-login',
 

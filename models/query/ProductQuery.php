@@ -13,5 +13,4 @@ use \app\models\Product;
  */
 class ProductQuery extends \yii\db\ActiveQuery
 {
-
 }
