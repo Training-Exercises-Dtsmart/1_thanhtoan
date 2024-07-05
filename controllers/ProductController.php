@@ -10,7 +10,6 @@ use Yii;
 use app\controllers\Controller;
 use yii\data\ActiveDataProvider;
 use app\models\search\ProductSearch;
-use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
 
 class ProductController extends controller
@@ -21,9 +20,9 @@ class ProductController extends controller
         // return $products;
         $provider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => 2,
-            ],
+            // 'pagination' => [
+            // 'pageSize' => 2,
+            // ],
             'sort' => [
                 'defaultOrder' => [
                     'created_at' => SORT_ASC,

@@ -2,7 +2,6 @@
 
 namespace app\models\search;
 
-use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Product;
 
@@ -27,8 +26,6 @@ class ProductSearch extends Product
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
-
-
         $this->load($params);
 
         if (!$this->validate()) {

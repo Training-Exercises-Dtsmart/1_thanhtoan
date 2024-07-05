@@ -21,7 +21,7 @@ use \app\models\query\PostQuery;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\Category $category
+ * @property \app\models\CategoriesPost $category
  * @property \app\models\User $user
  */
 abstract class Post extends \yii\db\ActiveRecord
@@ -60,7 +60,7 @@ abstract class Post extends \yii\db\ActiveRecord
             [['category_id', 'user_id', 'status'], 'integer'],
             [['content'], 'string'],
             [['title'], 'string', 'max' => 200],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Category::class, 'targetAttribute' => ['category_id' => 'id']],
+            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\CategoriesPost::class, 'targetAttribute' => ['category_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
     }
@@ -87,7 +87,7 @@ abstract class Post extends \yii\db\ActiveRecord
      */
     public function getCategory()
     {
-        return $this->hasOne(\app\models\Category::class, ['id' => 'category_id']);
+        return $this->hasOne(\app\models\CategoriesPost::class, ['id' => 'category_id']);
     }
 
     /**

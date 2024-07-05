@@ -28,7 +28,7 @@ class m240702_125658_create_posts_table extends Migration
             'fk-posts-category_id',
             '{{%posts}}',
             'category_id',
-            '{{%categories}}',
+            '{{%categories_post}}',
             'id',
             'CASCADE'
         );

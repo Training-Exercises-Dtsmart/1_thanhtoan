@@ -19,7 +19,6 @@ use \app\models\query\CategoryQuery;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\Post[] $posts
  * @property \app\models\Product[] $products
  */
 abstract class Category extends \yii\db\ActiveRecord
@@ -74,14 +73,6 @@ abstract class Category extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ]);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getPosts()
-    {
-        return $this->hasMany(\app\models\Post::class, ['category_id' => 'id']);
     }
 
     /**
