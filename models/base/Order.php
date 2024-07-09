@@ -10,23 +10,23 @@ use yii\behaviors\TimestampBehavior;
 use \app\models\query\OrderQuery;
 
 /**
- * This is the base-model class for table "orders".
+ * This is the base-model class for table "order".
  *
  * @property integer $id
  * @property integer $user_id
- * @property string $order_number
- * @property string $total_amount
+ * @property string $order_code
+ * @property double $total_amount
  * @property integer $status
  * @property string $shipping_address
  * @property string $billing_address
- * @property string $payment_method
  * @property string $customer_name
  * @property string $customer_email
  * @property string $customer_phone
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\OrdersItem[] $ordersItems
+ * @property \app\models\OrderItem[] $orderItems
+ * @property \app\models\OrderPayment[] $orderPayments
  * @property \app\models\User $user
  */
 abstract class Order extends \yii\db\ActiveRecord
@@ -37,7 +37,7 @@ abstract class Order extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'orders';
+        return 'order';
     }
 
     /**
@@ -61,15 +61,15 @@ abstract class Order extends \yii\db\ActiveRecord
     {
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
-            [['user_id', 'order_number', 'total_amount', 'payment_method', 'customer_name', 'customer_email', 'customer_phone'], 'required'],
+            [['user_id', 'order_code', 'total_amount', 'customer_name', 'customer_email', 'customer_phone'], 'required'],
             [['user_id', 'status'], 'integer'],
             [['total_amount'], 'number'],
             [['shipping_address', 'billing_address'], 'string'],
-            [['order_number'], 'string', 'max' => 255],
-            [['payment_method', 'customer_name'], 'string', 'max' => 50],
+            [['order_code'], 'string', 'max' => 255],
+            [['customer_name'], 'string', 'max' => 50],
             [['customer_email'], 'string', 'max' => 100],
             [['customer_phone'], 'string', 'max' => 20],
-            [['order_number'], 'unique'],
+            [['order_code'], 'unique'],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
     }
@@ -82,12 +82,11 @@ abstract class Order extends \yii\db\ActiveRecord
         return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
             'user_id' => 'User ID',
-            'order_number' => 'Order Number',
+            'order_code' => 'Order Code',
             'total_amount' => 'Total Amount',
             'status' => 'Status',
             'shipping_address' => 'Shipping Address',
             'billing_address' => 'Billing Address',
-            'payment_method' => 'Payment Method',
             'customer_name' => 'Customer Name',
             'customer_email' => 'Customer Email',
             'customer_phone' => 'Customer Phone',
@@ -99,9 +98,17 @@ abstract class Order extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getOrdersItems()
+    public function getOrderItems()
     {
-        return $this->hasMany(\app\models\OrdersItem::class, ['order_id' => 'id']);
+        return $this->hasMany(\app\models\OrderItem::class, ['order_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getOrderPayments()
+    {
+        return $this->hasMany(\app\models\OrderPayment::class, ['order_id' => 'id']);
     }
 
     /**

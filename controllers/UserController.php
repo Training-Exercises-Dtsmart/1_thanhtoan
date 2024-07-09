@@ -5,134 +5,85 @@ namespace app\controllers;
 
 use Yii;
 use app\models\User;
-use app\models\Users;
-
-use yii\rest\Controller;
+// use yii\rest\Controller;
+use app\controllers\Controller;
 use app\models\form\UserForm;
-use yii\web\NotFoundHttpException;
-use yii\web\ServerErrorHttpException;
+use common\helpers\HttpStatusCodes;
 
 class UserController extends Controller
 {
 
-
-
-    // Test CRUD User batch generation
-    public function actionIndexBatch()
-    {
-        $listUser = User::find()->active()->all();
-        return $listUser;
-    }
-
-    public function actionCreateBatch()
-    {
-        $userForm = new UserForm();
-        $userForm->load(Yii::$app->request->post());
-        if ($userForm->validate()) {
-            $userForm->save();
-            return $userForm;
-        } else {
-            return $userForm->getErrors();
-        }
-    }
-
-    public function actionDeleteBatch($user_id)
-    {
-        $user = User::findOne($user_id);
-        if ($user) {
-            if ($user->delete()) {
-                return ['status' => true, 'data' => ['now' => date('d/m/Y')], 'message' => 'User deleted success'];
-            } else {
-                return ['status' => false, 'data' => ['now' => date('d/m/Y')], 'message' => 'Delete Failed!'];
-            }
-        } else {
-            throw new NotFoundHttpException('User not found.');
-        }
-    }
-
-    public function actionUpdateBatch($user_id)
-    {
-        $user = User::findOne($user_id);
-        if ($user === null) {
-            throw new NotFoundHttpException('User not found.');
-        }
-
-        $user->load(Yii::$app->request->post());
-        if ($user->save()) {
-            return [
-                'status' => 'success', 'now' => date('d/n/Y'), 'message' => 'User updated successfully.', 'user' => $user
-            ];
-        } else {
-            throw new ServerErrorHttpException('Failed to update the user.');
-        }
-    }
-
-    //end
-
-
     public function actionIndex()
     {
-        $listUser = Users::find()->orderBy("id")->all();
-        return ['status' => true, 'data' => ['ListUser' => $listUser, 'now' => date('d/m/Y')], 'message' => 'success'];
+        $listUser = User::find()->active()->all();
+
+        if (empty($listUser)) {
+            return $this->json(false, [], "No active users found", HttpStatusCodes::NOT_FOUND);
+        }
+        return $this->json(true, $listUser, "Active users retrieved successfully", HttpStatusCodes::OK);
     }
-
-
-
 
     public function actionCreate()
     {
+        $user = new UserForm();
+        $user->load(Yii::$app->request->post());
 
-        $user = new Users();
-        // $user->username = 'thinh';
-        // $user->password_hash = 'ddsadadsadsd321';
-        // $user->age = '21';
-
-        $user->username = Yii::$app->request->post('username');
-        $user->email = Yii::$app->request->post('email');
-
-        $user->password_hash = Yii::$app->getSecurity()->generatePasswordHash(Yii::$app->request->post('password'));
-        $user->save();
+        if ($user->validate()) {
+            if ($user->save()) {
+                return $this->json(true, $user, "User created successfully", HttpStatusCodes::CREATED);
+            } else {
+                return $this->json(false, [], "Failed to save user", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return $this->json(false, $user->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
+        }
     }
 
-    // public function actionDelete($id)
-    // {
-    //     $user = Users::findOne($id);
-    //     if ($user->delete()) {
-    //         return ['status' => true, 'data' => ['now' => date('d/m/Y')], 'message' => 'success'];
-    //     }
-    // }
+    public function actionDelete($user_id)
+    {
+        $user = User::findOne($user_id);
+
+        if ($user) {
+            if ($user->delete()) {
+                return $this->json(true, [], 'User deleted successfully', HttpStatusCodes::OK);
+            } else {
+                return $this->json(false, $user->getErrors(), 'Failed to delete user', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
+    }
+
+    public function actionUpdate($user_id)
+    {
+        $user = User::findOne($user_id);
+        if (!$user) {
+            return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
+        $user->load(Yii::$app->request->post());
+
+        if ($user->save()) {
+            $this->json(true, [], 'user updated successfully', HttpStatusCodes::OK);
+        } else {
+            return $this->json(false, $user->getErrors(), 'Failed to update the user', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
     public function actionLogin()
     {
-        $dataRequest = Yii::$app->request->post();
-        if (isset($dataRequest['username']) && $dataRequest['password']) {
-            $userAccount = 'toan';
-            $passwordAccount = md5(123);
-            if ($dataRequest['username'] === $userAccount && md5($dataRequest['password']) === $passwordAccount) {
-                return [
-                    'status' => true,
-                    'data' => [
-                        'now' => date('d/m/Y')
-                    ],
-                    'message' => 'success'
-                ];
-            } else {
-                return [
-                    'status' => false,
-                    'data' => [
-                        'now' => date('d/m/Y')
-                    ],
-                    'message' => 'Invalid username or password'
-                ];
-            }
+        $requestData = Yii::$app->request->post();
+        if (empty($requestData['username']) || empty($requestData['password'])) {
+            return $this->json(false, [], 'Empty input', HttpStatusCodes::BAD_REQUEST);
+        }
+        $username = 'toan';
+        $passwordHash = md5('123');
+
+        if ($requestData['username'] === $username && md5($requestData['password']) === $passwordHash) {
+            return $this->json(true, [], 'Login successful', HttpStatusCodes::OK);
         } else {
-            return [
-                'status' => false,
-                'data' => [
-                    'now' => date('d/m/Y')
-                ],
-                'message' => 'empty input'
-            ];
+            return $this->json(false, [], 'Invalid username or password', HttpStatusCodes::UNAUTHORIZED);
         }
     }
 }

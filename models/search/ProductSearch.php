@@ -13,9 +13,6 @@ class ProductSearch extends Product
         return [
             [['id', 'category_id', 'price', 'discount_price', 'stock', 'view_count', 'status'], 'integer'],
             [['name', 'description', 'keyword'], 'safe'],
-            // [['id', 'category_id'], 'integer'],
-            // [['name'], 'number'],
-            // ['keyword', 'safe'],
         ];
     }
 
@@ -38,8 +35,10 @@ class ProductSearch extends Product
             'description' => $this->description,
         ]);
 
-        $query->andFilterWhere(["or", ["LIKE", "name", $this->keyword], ['like', "description", $this->keyword]]);
-        // ->andFilterWhere(['like', "description", $this->keyword]);
+        $query->andFilterWhere(["OR", ["LIKE", "name", $this->keyword], ['like', "description", $this->keyword]]);
+        // different writing style
+        // $query->andFilterWhere(['like', 'name', $this->keyword])
+        // ->orFilterWhere(['like', 'description', $this->keyword]);
         return $dataProvider;
     }
 }

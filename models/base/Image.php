@@ -9,7 +9,7 @@ use yii\helpers\ArrayHelper;
 use \app\models\query\ImageQuery;
 
 /**
- * This is the base-model class for table "images".
+ * This is the base-model class for table "image".
  *
  * @property integer $id
  * @property integer $product_id
@@ -26,7 +26,7 @@ abstract class Image extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'images';
+        return 'image';
     }
 
     /**

@@ -7,10 +7,10 @@ namespace app\models\base;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\behaviors\TimestampBehavior;
-use \app\models\query\CategoryQuery;
+use \app\models\query\CategoryPostQuery;
 
 /**
- * This is the base-model class for table "category".
+ * This is the base-model class for table "category_post".
  *
  * @property integer $id
  * @property integer $user_id
@@ -20,10 +20,10 @@ use \app\models\query\CategoryQuery;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\Product[] $products
+ * @property \app\models\Post[] $posts
  * @property \app\models\User $user
  */
-abstract class Category extends \yii\db\ActiveRecord
+abstract class CategoryPost extends \yii\db\ActiveRecord
 {
 
     /**
@@ -31,7 +31,7 @@ abstract class Category extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'category';
+        return 'category_post';
     }
 
     /**
@@ -57,8 +57,7 @@ abstract class Category extends \yii\db\ActiveRecord
         return ArrayHelper::merge($parentRules, [
             [['user_id', 'name'], 'required'],
             [['user_id', 'status'], 'integer'],
-            [['name'], 'string', 'max' => 50],
-            [['description'], 'string', 'max' => 100],
+            [['name', 'description'], 'string', 'max' => 50],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
     }
@@ -82,9 +81,9 @@ abstract class Category extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getProducts()
+    public function getPosts()
     {
-        return $this->hasMany(\app\models\Product::class, ['category_id' => 'id']);
+        return $this->hasMany(\app\models\Post::class, ['category_id' => 'id']);
     }
 
     /**
@@ -97,10 +96,10 @@ abstract class Category extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
-     * @return CategoryQuery the active query used by this AR class.
+     * @return CategoryPostQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new CategoryQuery(static::class);
+        return new CategoryPostQuery(static::class);
     }
 }

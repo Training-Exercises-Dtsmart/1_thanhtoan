@@ -3,42 +3,42 @@
 use yii\db\Migration;
 
 /**
- * Handles the creation of table `{{%posts}}`.
+ * Handles the creation of table `{{%post}}`.
  */
-class m240702_125658_create_posts_table extends Migration
+class m240702_125658_create_post_table extends Migration
 {
     /**
      * {@inheritdoc}
      */
     public function safeUp()
     {
-        $this->createTable('{{%posts}}', [
+        $this->createTable('{{%post}}', [
             'id' => $this->primaryKey(),
             'category_id' => $this->integer()->notNull(),
             'user_id' => $this->integer()->notNull(),
             'title' => $this->string(200)->notNull(),
             'content' => $this->text()->notNull(),
-            'status' => $this->smallInteger()->defaultValue(0),
+            'status' => $this->smallInteger()->notNull()->defaultValue(0),
             'created_at' => $this->dateTime(),
             'updated_at' => $this->dateTime(),
         ]);
 
 
         $this->addForeignKey(
-            'fk-posts-category_id',
-            '{{%posts}}',
+            'fk-post-category_id',
+            '{{%post}}',
             'category_id',
-            '{{%categories_post}}',
+            '{{%category_post}}',
             'id',
             'CASCADE'
         );
 
 
         $this->addForeignKey(
-            'fk-posts-user_id',
-            '{{%posts}}',
+            'fk-post-user_id',
+            '{{%post}}',
             'user_id',
-            '{{%users}}',
+            '{{%user}}',
             'id',
             'CASCADE'
         );
@@ -49,8 +49,8 @@ class m240702_125658_create_posts_table extends Migration
      */
     public function safeDown()
     {
-        $this->dropForeignKey('fk-posts-category_id', '{{%posts}}');
-        $this->dropForeignKey('fk-posts-user_id', '{{%posts}}');
-        $this->dropTable('{{%posts}}');
+        $this->dropForeignKey('fk-post-category_id', '{{%post}}');
+        $this->dropForeignKey('fk-post-user_id', '{{%post}}');
+        $this->dropTable('{{%post}}');
     }
 }

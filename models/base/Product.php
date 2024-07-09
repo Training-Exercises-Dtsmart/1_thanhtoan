@@ -10,13 +10,14 @@ use yii\behaviors\TimestampBehavior;
 use \app\models\query\ProductQuery;
 
 /**
- * This is the base-model class for table "products".
+ * This is the base-model class for table "product".
  *
  * @property integer $id
  * @property integer $category_id
+ * @property integer $user_id
  * @property string $name
- * @property string $price
- * @property string $discount_price
+ * @property double $price
+ * @property double $discount_price
  * @property integer $stock
  * @property string $description
  * @property integer $view_count
@@ -25,9 +26,9 @@ use \app\models\query\ProductQuery;
  * @property string $updated_at
  *
  * @property \app\models\Category $category
- * @property \app\models\Color[] $colors
  * @property \app\models\Image[] $images
- * @property \app\models\OrdersItem[] $ordersItems
+ * @property \app\models\OrderItem[] $orderItems
+ * @property \app\models\User $user
  */
 abstract class Product extends \yii\db\ActiveRecord
 {
@@ -37,7 +38,7 @@ abstract class Product extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'products';
+        return 'product';
     }
 
     /**
@@ -61,12 +62,13 @@ abstract class Product extends \yii\db\ActiveRecord
     {
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
-            [['category_id', 'name', 'price'], 'required'],
-            [['category_id', 'stock', 'view_count', 'status'], 'integer'],
+            [['category_id', 'user_id', 'name', 'price'], 'required'],
+            [['category_id', 'user_id', 'stock', 'view_count', 'status'], 'integer'],
             [['price', 'discount_price'], 'number'],
             [['description'], 'string'],
             [['name'], 'string', 'max' => 50],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Category::class, 'targetAttribute' => ['category_id' => 'id']]
+            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Category::class, 'targetAttribute' => ['category_id' => 'id']],
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
     }
 
@@ -78,6 +80,7 @@ abstract class Product extends \yii\db\ActiveRecord
         return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
             'category_id' => 'Category ID',
+            'user_id' => 'User ID',
             'name' => 'Name',
             'price' => 'Price',
             'discount_price' => 'Discount Price',
@@ -101,14 +104,6 @@ abstract class Product extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getColors()
-    {
-        return $this->hasMany(\app\models\Color::class, ['product_id' => 'id']);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
     public function getImages()
     {
         return $this->hasMany(\app\models\Image::class, ['product_id' => 'id']);
@@ -117,9 +112,17 @@ abstract class Product extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getOrdersItems()
+    public function getOrderItems()
     {
-        return $this->hasMany(\app\models\OrdersItem::class, ['product_id' => 'id']);
+        return $this->hasMany(\app\models\OrderItem::class, ['product_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(\app\models\User::class, ['id' => 'user_id']);
     }
 
     /**

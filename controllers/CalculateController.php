@@ -4,69 +4,41 @@
 namespace app\controllers;
 
 use Yii;
-use yii\rest\Controller;
+// use yii\rest\Controller;
+use app\controllers\Controller;
+use common\helpers\HttpStatusCodes;
 
 class CalculateController extends Controller
 {
 
     public function actionTotal()
     {
-
         $dataRequest = Yii::$app->request->post();
-        if (isset($dataRequest['soa']) && isset($dataRequest['sob'])) {
+
+        if (!empty($dataRequest['soa']) && !empty($dataRequest['sob'])) {
             if (is_numeric($dataRequest['soa']) && is_numeric($dataRequest['sob'])) {
                 $total = $dataRequest['soa'] + $dataRequest['sob'];
-                return [
-                    'status' => true,
-                    'data' => [
-                        'Giatri' => $total,
-                        'now' => date('d/m/Y')
-                    ],
-                    'message' => 'success'
-                ];
+                return $this->json(true, $total, 'Calculate total successfully', HttpStatusCodes::OK);
             } else {
-                return [
-                    'status' => false,
-                    'data' => null,
-                    'message' => 'Giá trị phải là số'
-                ];
+                return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
             }
         } else {
-            return [
-                'status' => false,
-                'data' => null,
-                'message' => 'Phải nhập soa và sob'
-            ];
+            return $this->json(false, [], 'Please provide soa and sob', HttpStatusCodes::BAD_REQUEST);
         }
     }
 
     public function actionDivide()
     {
         $dataRequest = Yii::$app->request->post();
-        if (isset($dataRequest['soa']) && isset($dataRequest['sob'])) {
+        if (!empty($dataRequest['soa']) && !empty($dataRequest['sob'])) {
             if (is_numeric($dataRequest['soa']) && is_numeric($dataRequest['sob'])) {
                 $totalDevide = $dataRequest['soa'] / $dataRequest['sob'];
-                return [
-                    'status' => true,
-                    'data' => [
-                        'Giatri' => $totalDevide,
-                        'now' => date('d/m/Y')
-                    ],
-                    'message' => 'success'
-                ];
+                return $this->json(true, $totalDevide, 'Calculate successfully', HttpStatusCodes::OK);
             } else {
-                return [
-                    'status' => false,
-                    'data' => null,
-                    'message' => 'Giá trị phải là số'
-                ];
+                return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
             }
         } else {
-            return [
-                'status' => false,
-                'data' => null,
-                'message' => 'Phải nhập soa và sob'
-            ];
+            return $this->json(false, [], 'Please provide soa and sob', HttpStatusCodes::BAD_REQUEST);
         }
     }
 
@@ -74,7 +46,7 @@ class CalculateController extends Controller
     {
         $data = Yii::$app->request->post();
         $numbers = [];
-        //get all numbers
+        // Collect all numbers from the request
         foreach ($data as $key => $value) {
             if (strpos($key, 'so') === 0) {
                 $numbers[] = $value;
@@ -82,23 +54,13 @@ class CalculateController extends Controller
         }
         foreach ($numbers as $number) {
             if (!is_numeric($number)) {
-                return [
-                    'status' => false,
-                    'data' => null,
-                    'message' => 'Tất cả các giá trị phải là số'
-                ];
+                return $this->json(false, [], 'All values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
             }
         }
+        // Calculate average
         $total = array_sum($numbers);
         $count = count($numbers);
         $average = $total / $count;
-        return [
-            'status' => true,
-            'data' => [
-                'Giatri' => $average,
-                'now' => date('d/m/Y')
-            ],
-            'message' => 'success'
-        ];
+        return $this->json(true,  $average, 'Calculate average successfully', HttpStatusCodes::OK);
     }
 }

@@ -5,9 +5,8 @@ namespace app\controllers;
 use Yii;
 use app\models\form\CategoryForm;
 use app\models\Category;
-// use app\models\form\Cate;
-use yii\rest\Controller;
-use yii\web\NotFoundHttpException;
+use app\controllers\Controller;
+use common\helpers\HttpStatusCodes;
 
 class CategoryController extends Controller
 {
@@ -18,15 +17,14 @@ class CategoryController extends Controller
     }
     public function actionCreate()
     {
-        $categoryForm = new CategoryForm();
-        $categoryForm->load(Yii::$app->request->post());
-        if ($categoryForm->validate()) {
-            $categoryForm->save();
-            return [
-                'status' => true, 'now' => date('d/n/Y'), 'message' => 'Category create successfully.', 'category' => $categoryForm,
-            ];
+        $category = new CategoryForm();
+        $category->load(Yii::$app->request->post());
+
+        if ($category->validate()) {
+            $category->save();
+            return $this->json(true, $category, 'Category created successfully', HttpStatusCodes::OK);
         } else {
-            return $categoryForm->getErrors();
+            return $this->json(false, $category->getErrors(), 'Validation failed', HttpStatusCodes::UNPROCESSABLE_ENTITY);
         }
     }
     public function actionDelete($categories_id)
@@ -34,14 +32,12 @@ class CategoryController extends Controller
 
         $category = Category::find()->where(['id' => $categories_id])->one();
         if ($category === null) {
-            throw new NotFoundHttpException('The requested category does not exist.');
+            return $this->json(false, [], 'Category not found', HttpStatusCodes::NOT_FOUND);
         }
         if ($category->delete()) {
-            return [
-                'status' => true, 'message' => 'Category delete successfully.', 'code' => 200,
-            ];
+            return $this->json(true, [], 'Category deleted successfully', HttpStatusCodes::OK);
         } else {
-            throw new \yii\web\ServerErrorHttpException('Failed to delete the category for unknown reasons.');
+            return $this->json(false, [], 'Failed to delete the category', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
     }
 }

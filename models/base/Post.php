@@ -10,7 +10,7 @@ use yii\behaviors\TimestampBehavior;
 use \app\models\query\PostQuery;
 
 /**
- * This is the base-model class for table "posts".
+ * This is the base-model class for table "post".
  *
  * @property integer $id
  * @property integer $category_id
@@ -21,7 +21,7 @@ use \app\models\query\PostQuery;
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\CategoriesPost $category
+ * @property \app\models\CategoryPost $category
  * @property \app\models\User $user
  */
 abstract class Post extends \yii\db\ActiveRecord
@@ -32,7 +32,7 @@ abstract class Post extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'posts';
+        return 'post';
     }
 
     /**
@@ -60,7 +60,7 @@ abstract class Post extends \yii\db\ActiveRecord
             [['category_id', 'user_id', 'status'], 'integer'],
             [['content'], 'string'],
             [['title'], 'string', 'max' => 200],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\CategoriesPost::class, 'targetAttribute' => ['category_id' => 'id']],
+            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\CategoryPost::class, 'targetAttribute' => ['category_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
     }
@@ -87,7 +87,7 @@ abstract class Post extends \yii\db\ActiveRecord
      */
     public function getCategory()
     {
-        return $this->hasOne(\app\models\CategoriesPost::class, ['id' => 'category_id']);
+        return $this->hasOne(\app\models\CategoryPost::class, ['id' => 'category_id']);
     }
 
     /**

@@ -10,25 +10,28 @@ use yii\behaviors\TimestampBehavior;
 use \app\models\query\UserQuery;
 
 /**
- * This is the base-model class for table "users".
+ * This is the base-model class for table "user".
  *
  * @property integer $id
  * @property string $username
  * @property string $email
  * @property string $password_hash
  * @property integer $gender
- * @property string $first_name
- * @property string $last_name
+ * @property string $full_name
  * @property string $date_of_birth
  * @property string $profile_picture
  * @property string $access_token
+ * @property integer $is_verified
  * @property integer $status
  * @property integer $role
  * @property string $created_at
  * @property string $updated_at
  *
+ * @property \app\models\Category[] $categories
+ * @property \app\models\CategoryPost[] $categoryPosts
  * @property \app\models\Order[] $orders
  * @property \app\models\Post[] $posts
+ * @property \app\models\Product[] $products
  */
 abstract class User extends \yii\db\ActiveRecord
 {
@@ -38,7 +41,7 @@ abstract class User extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'users';
+        return 'user';
     }
 
     /**
@@ -63,10 +66,10 @@ abstract class User extends \yii\db\ActiveRecord
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
             [['username', 'email', 'password_hash'], 'required'],
-            [['gender', 'status', 'role'], 'integer'],
+            [['gender', 'is_verified', 'status', 'role'], 'integer'],
             [['date_of_birth'], 'safe'],
-            [['username', 'first_name', 'last_name'], 'string', 'max' => 50],
-            [['email'], 'string', 'max' => 100],
+            [['username'], 'string', 'max' => 50],
+            [['email', 'full_name'], 'string', 'max' => 100],
             [['password_hash', 'profile_picture', 'access_token'], 'string', 'max' => 255],
             [['username'], 'unique'],
             [['email'], 'unique']
@@ -84,16 +87,32 @@ abstract class User extends \yii\db\ActiveRecord
             'email' => 'Email',
             'password_hash' => 'Password Hash',
             'gender' => 'Gender',
-            'first_name' => 'First Name',
-            'last_name' => 'Last Name',
+            'full_name' => 'Full Name',
             'date_of_birth' => 'Date Of Birth',
             'profile_picture' => 'Profile Picture',
             'access_token' => 'Access Token',
+            'is_verified' => 'Is Verified',
             'status' => 'Status',
             'role' => 'Role',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ]);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCategories()
+    {
+        return $this->hasMany(\app\models\Category::class, ['user_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCategoryPosts()
+    {
+        return $this->hasMany(\app\models\CategoryPost::class, ['user_id' => 'id']);
     }
 
     /**
@@ -110,6 +129,14 @@ abstract class User extends \yii\db\ActiveRecord
     public function getPosts()
     {
         return $this->hasMany(\app\models\Post::class, ['user_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProducts()
+    {
+        return $this->hasMany(\app\models\Product::class, ['user_id' => 'id']);
     }
 
     /**

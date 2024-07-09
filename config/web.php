@@ -71,6 +71,9 @@ $config = [
     'params' => $params,
 ];
 
+// Thiết lập alias cho thư mục 'common'
+Yii::setAlias('@common', dirname(__DIR__) . '/common');
+
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';

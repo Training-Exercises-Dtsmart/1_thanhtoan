@@ -7,21 +7,23 @@ namespace app\models\base;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\behaviors\TimestampBehavior;
-use \app\models\query\CategoriesPostQuery;
+use \app\models\query\OrderPaymentQuery;
 
 /**
- * This is the base-model class for table "categories_post".
+ * This is the base-model class for table "order_payment".
  *
  * @property integer $id
- * @property string $name
- * @property string $description
- * @property integer $sethome
+ * @property integer $order_id
+ * @property string $payment_method
+ * @property double $amount
+ * @property string $transaction_id
+ * @property integer $status
  * @property string $created_at
  * @property string $updated_at
  *
- * @property \app\models\Post[] $posts
+ * @property \app\models\Order $order
  */
-abstract class CategoriesPost extends \yii\db\ActiveRecord
+abstract class OrderPayment extends \yii\db\ActiveRecord
 {
 
     /**
@@ -29,7 +31,7 @@ abstract class CategoriesPost extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'categories_post';
+        return 'order_payment';
     }
 
     /**
@@ -53,9 +55,12 @@ abstract class CategoriesPost extends \yii\db\ActiveRecord
     {
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
-            [['name'], 'required'],
-            [['sethome'], 'integer'],
-            [['name', 'description'], 'string', 'max' => 50]
+            [['order_id', 'payment_method', 'amount', 'transaction_id'], 'required'],
+            [['order_id', 'status'], 'integer'],
+            [['amount'], 'number'],
+            [['payment_method'], 'string', 'max' => 50],
+            [['transaction_id'], 'string', 'max' => 100],
+            [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Order::class, 'targetAttribute' => ['order_id' => 'id']]
         ]);
     }
 
@@ -66,9 +71,11 @@ abstract class CategoriesPost extends \yii\db\ActiveRecord
     {
         return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'name' => 'Name',
-            'description' => 'Description',
-            'sethome' => 'Sethome',
+            'order_id' => 'Order ID',
+            'payment_method' => 'Payment Method',
+            'amount' => 'Amount',
+            'transaction_id' => 'Transaction ID',
+            'status' => 'Status',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ]);
@@ -77,17 +84,17 @@ abstract class CategoriesPost extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getPosts()
+    public function getOrder()
     {
-        return $this->hasMany(\app\models\Post::class, ['category_id' => 'id']);
+        return $this->hasOne(\app\models\Order::class, ['id' => 'order_id']);
     }
 
     /**
      * @inheritdoc
-     * @return CategoriesPostQuery the active query used by this AR class.
+     * @return OrderPaymentQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new CategoriesPostQuery(static::class);
+        return new OrderPaymentQuery(static::class);
     }
 }

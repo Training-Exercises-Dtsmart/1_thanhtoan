@@ -14,4 +14,19 @@ class User extends BaseUser
     {
         return '';
     }
+
+    public static function findActive()
+    {
+        return self::find()->where(['status' => 1])->all();
+    }
+    public static function findOneUser($user_id)
+    {
+        return self::findOne($user_id);
+    }
+    public static function findRecent($days = 7)
+    {
+        $time = new \DateTime();
+        $time->modify("-{$days} days");
+        return self::find()->where(['>=', 'created_at', $time->format('Y-m-d H:i:s')])->all();
+    }
 }

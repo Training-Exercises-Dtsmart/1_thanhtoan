@@ -6,18 +6,21 @@ namespace app\models\base;
 
 use Yii;
 use yii\helpers\ArrayHelper;
-use \app\models\query\ColorQuery;
+use \app\models\query\OrderItemQuery;
 
 /**
- * This is the base-model class for table "colors".
+ * This is the base-model class for table "order_item".
  *
  * @property integer $id
- * @property string $colorname
+ * @property integer $order_id
  * @property integer $product_id
+ * @property integer $quantity
+ * @property double $price
  *
+ * @property \app\models\Order $order
  * @property \app\models\Product $product
  */
-abstract class Color extends \yii\db\ActiveRecord
+abstract class OrderItem extends \yii\db\ActiveRecord
 {
 
     /**
@@ -25,7 +28,7 @@ abstract class Color extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'colors';
+        return 'order_item';
     }
 
     /**
@@ -35,9 +38,10 @@ abstract class Color extends \yii\db\ActiveRecord
     {
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
-            [['colorname', 'product_id'], 'required'],
-            [['product_id'], 'integer'],
-            [['colorname'], 'string', 'max' => 20],
+            [['order_id', 'product_id', 'quantity', 'price'], 'required'],
+            [['order_id', 'product_id', 'quantity'], 'integer'],
+            [['price'], 'number'],
+            [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Order::class, 'targetAttribute' => ['order_id' => 'id']],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Product::class, 'targetAttribute' => ['product_id' => 'id']]
         ]);
     }
@@ -49,9 +53,19 @@ abstract class Color extends \yii\db\ActiveRecord
     {
         return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
-            'colorname' => 'Colorname',
+            'order_id' => 'Order ID',
             'product_id' => 'Product ID',
+            'quantity' => 'Quantity',
+            'price' => 'Price',
         ]);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getOrder()
+    {
+        return $this->hasOne(\app\models\Order::class, ['id' => 'order_id']);
     }
 
     /**
@@ -64,10 +78,10 @@ abstract class Color extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
-     * @return ColorQuery the active query used by this AR class.
+     * @return OrderItemQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new ColorQuery(static::class);
+        return new OrderItemQuery(static::class);
     }
 }
