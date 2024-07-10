@@ -10,6 +10,7 @@ use Yii;
 use app\controllers\Controller;
 use app\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
+use yii\rest\Serializer;
 
 class ProductController extends controller
 {
@@ -17,7 +18,7 @@ class ProductController extends controller
     public function actionIndex()
     {
         $dataProvider = Product::getAllProducts();
-        $serializer = new \yii\rest\Serializer(['collectionEnvelope' => 'items']);
+        $serializer = new Serializer(['collectionEnvelope' => 'items']);
         $data = $serializer->serialize($dataProvider);
         return $this->json(true, $data, "Success", HttpStatusCodes::OK);
     }

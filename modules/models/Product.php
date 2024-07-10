@@ -11,15 +11,11 @@ class Product extends BaseProduct
         // return array(parent::fields(), 'name', 'description', 'price');
         return array_merge(parent::fields(), [
             "category_name" => "categoryName",
-            // "name" => function () {
-            // return strtolower($this->name);
-            // }
         ]);
     }
 
-
     public function getCategoryName()
     {
-        return $this->category->name;
+        return isset($this->category) ? $this->category->name : "Product category not found";
     }
 }

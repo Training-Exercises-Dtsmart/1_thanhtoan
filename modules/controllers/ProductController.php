@@ -8,51 +8,39 @@ use app\modules\models\Product;
 use app\modules\models\form\ProductForm;
 // use app\models\form\ProductForm;
 use yii\data\ActiveDataProvider;
-use yii\web\ServerErrorHttpException;
 use app\modules\models\search\ProductSearch;
+use common\helpers\HttpStatusCodes;
+use yii\rest\Serializer;
 
 class ProductController extends Controller
 {
     //pagination and SORT_DESC by created_at
     public function actionIndex()
     {
-        $query =  Product::find();
-        $provider = new ActiveDataProvider([
-            "query" => $query,
-            "pagination" => [
-                "pageSize" => 2,
-            ],
-            "sort" => [
-                "defaultOrder" => [
-                    "created_at" => SORT_DESC,
-                ],
-            ]
-        ]);
-
-        $serializer = new \yii\rest\Serializer(["collectionEnvelope" => "items"]);
-        $data = $serializer->serialize($provider);
-        return $data;
+        $dataProvider =  Product::getAllProducts();
+        if (!$dataProvider->getModels()) {
+            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
+        }
+        $serializer = new Serializer(['collectionEnvelope' => 'items']);
+        $data = $serializer->serialize($dataProvider);
+        return $this->json(true, $data, "Success", HttpStatusCodes::OK);
     }
 
     // search by keyword or category_name
-
-
-    public function actionProductSearch()
+    public function actionSearch()
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        return [
-            'status' => 'success',
-            'data' => $dataProvider->getModels(),
-        ];
-
+        if (!$dataProvider->getModels()) {
+            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
+        }
+        return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
         // // join raw 
         // $product = Product::find()
         //     ->andFilterWhere(["LIKE", "categories.name", Yii::$app->request->getQueryParam("category_name")])
         //     ->leftJoin("categories", "products.category_id=categories.id")
         //     ->all();
         // return $this->json($product);
-
 
         // //join With
         // $product = Product::find()
@@ -65,37 +53,41 @@ class ProductController extends Controller
     {
         $product = new ProductForm();
         $product->load(Yii::$app->request->post());
-        if (!$product->validate() || !$product->save()) {
-            return $this->json(false, [
-                "errors" => $product->getErrors()
-            ], "Can't update product", 400);
+        if (!$product->validate()) {
+            return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
-        return $this->json(true, $product, "Success");
+        if (!$product->save()) {
+            return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $product, "Product created successfully", HttpStatusCodes::CREATED);
     }
     public function actionUpdate($product_id)
     {
-        $product = Product::find()->where(["id" => $product_id])->one();
+        $product = ProductForm::find()->where(["id" => $product_id])->one();
         if (!$product) {
-            return $this->json(false, [], "Product not found", 404);
+            return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
         }
+
         $product->load(Yii::$app->request->post());
-        if (!$product->validate() || !$product->save()) {
-            $this->json(false, [], "Can't update product", 400);
+        if (!$product->validate()) {
+            return $this->json(false, $product->getErrors(), "Invalid product data", HttpStatusCodes::BAD_REQUEST);
         }
-        return $this->json(true, $product, "update product successfully");
+        if (!$product->save()) {
+            return $this->json(false, $product->getErrors(), "Can't update product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $product, 'Update product successfully', HttpStatusCodes::OK);
     }
 
     public function actionDelete($product_id)
     {
         $product = Product::find()->where(["id" => $product_id])->one();
         if (!$product) {
-            return  $this->json(false, [], "Product not found", 404);
+            return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
         }
 
-        if ($product->delete()) {
-            return $this->json(true, [], "Product deleted successfully", 200);
-        } else {
-            throw new ServerErrorHttpException('Failed to delete product');
+        if (!$product->delete()) {
+            return $this->json(false, [], 'Failed to delete product', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
+        return $this->json(true, [], 'Product deleted successfully', HttpStatusCodes::OK);
     }
 }

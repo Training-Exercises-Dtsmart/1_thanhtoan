@@ -3,7 +3,7 @@
 namespace app\modules\models\search;
 
 use yii\data\ActiveDataProvider;
-use app\models\Product;
+use app\modules\models\Product;
 
 class ProductSearch extends Product
 {
@@ -31,7 +31,7 @@ class ProductSearch extends Product
         }
 
         $query->andFilterWhere(['like', 'categories.name', $this->category_name])
-            ->andFilterWhere(['like', 'products.name', $this->keyword]);
+            ->orFilterWhere(['like', 'product.name', $this->keyword]);
         return $dataProvider;
     }
 }

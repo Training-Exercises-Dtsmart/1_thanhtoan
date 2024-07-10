@@ -7,6 +7,8 @@ use app\models\form\CategoryForm;
 use app\models\Category;
 use app\controllers\Controller;
 use common\helpers\HttpStatusCodes;
+use yii\db\Exception;
+use yii\db\StaleObjectException;
 
 class CategoryController extends Controller
 {
@@ -15,7 +17,11 @@ class CategoryController extends Controller
         var_dump(2);
         die;
     }
-    public function actionCreate()
+
+    /**
+     * @throws Exception
+     */
+    public function actionCreate(): array
     {
         $category = new CategoryForm();
         $category->load(Yii::$app->request->post());
@@ -24,10 +30,16 @@ class CategoryController extends Controller
             $category->save();
             return $this->json(true, $category, 'Category created successfully', HttpStatusCodes::OK);
         } else {
-            return $this->json(false, $category->getErrors(), 'Validation failed', HttpStatusCodes::UNPROCESSABLE_ENTITY);
+            return $this->json(false, $category->getErrors(), 'Validation failed',
+                HttpStatusCodes::UNPROCESSABLE_ENTITY);
         }
     }
-    public function actionDelete($categories_id)
+
+    /**
+     * @throws \Throwable
+     * @throws StaleObjectException
+     */
+    public function actionDelete($categories_id): array
     {
 
         $category = Category::find()->where(['id' => $categories_id])->one();
