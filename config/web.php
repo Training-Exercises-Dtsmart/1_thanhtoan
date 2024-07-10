@@ -65,6 +65,11 @@ $config = [
             ],
         ],
 
+        'weather' => [
+            'class' => 'app\components\WeatherComponent',
+            'apiKey' => '10da2c1fa4fd45b196141841241007',
+        ]
+
 
 
     ],
