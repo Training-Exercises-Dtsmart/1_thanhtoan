@@ -14,7 +14,6 @@ use yii\rest\Serializer;
 
 class ProductController extends controller
 {
-    //search for products
     public function actionIndex()
     {
         $dataProvider = Product::getAllProducts();
@@ -37,12 +36,14 @@ class ProductController extends controller
     {
         $product = new ProductForm();
         $product->load(Yii::$app->request->post());
-        if (!$product->validate() || !$product->save()) {
-            return $this->json(false, ["error" => $product->getErrors()], "Can't update product", HttpStatusCodes::BAD_REQUEST);
+        if (!$product->validate()) {
+            return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
-        return $this->json(true, $product, "Success", HttpStatusCodes::OK);
+        if (!$product->save()) {
+            return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $product, "Product created successfully", HttpStatusCodes::OK);
     }
-
 
     public function actionUpdate($product_id)
     {
@@ -57,11 +58,10 @@ class ProductController extends controller
         }
 
         if (!$product->save()) {
-            return $this->json(false, ["error" => $product->getErrors()], "Can't update product", HttpStatusCodes::BAD_REQUEST);
+            return $this->json(false, $product->getErrors(), "Can't update product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
         return $this->json(true, $product, "Product updated successfully", HttpStatusCodes::OK);
     }
-
 
     public function actionDelete($product_id)
     {
@@ -69,10 +69,9 @@ class ProductController extends controller
         if (!$product) {
             return $this->json(false, [], "Product not found", HttpStatusCodes::NOT_FOUND);
         }
-        if ($product->delete()) {
-            return $this->json(true, [], "Product deleted successfully", HttpStatusCodes::OK);
-        } else {
-            return $this->json(false, [], "Failed to delete product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        if (!$product->delete()) {
+            return $this->json(false, [], 'Failed to delete product', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
+        return $this->json(true, [], "Product deleted successfully", HttpStatusCodes::OK);
     }
 }

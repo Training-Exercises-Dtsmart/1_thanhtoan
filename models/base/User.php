@@ -21,6 +21,7 @@ use \app\models\query\UserQuery;
  * @property string $date_of_birth
  * @property string $profile_picture
  * @property string $access_token
+ * @property string $verification_token
  * @property integer $is_verified
  * @property integer $status
  * @property integer $role
@@ -53,9 +54,9 @@ abstract class User extends \yii\db\ActiveRecord
         $behaviors['timestamp'] = [
             'class' => TimestampBehavior::class,
             'value' => (new \DateTime())->format('Y-m-d H:i:s'),
-                        ];
-        
-    return $behaviors;
+        ];
+
+        return $behaviors;
     }
 
     /**
@@ -70,7 +71,7 @@ abstract class User extends \yii\db\ActiveRecord
             [['date_of_birth'], 'safe'],
             [['username'], 'string', 'max' => 50],
             [['email', 'full_name'], 'string', 'max' => 100],
-            [['password_hash', 'profile_picture', 'access_token'], 'string', 'max' => 255],
+            [['password_hash', 'profile_picture', 'access_token', 'verification_token'], 'string', 'max' => 255],
             [['username'], 'unique'],
             [['email'], 'unique']
         ]);
@@ -91,6 +92,7 @@ abstract class User extends \yii\db\ActiveRecord
             'date_of_birth' => 'Date Of Birth',
             'profile_picture' => 'Profile Picture',
             'access_token' => 'Access Token',
+            'verification_token' => 'Verification Token',
             'is_verified' => 'Is Verified',
             'status' => 'Status',
             'role' => 'Role',

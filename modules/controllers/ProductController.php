@@ -7,7 +7,6 @@ use app\controllers\Controller;
 use app\modules\models\Product;
 use app\modules\models\form\ProductForm;
 // use app\models\form\ProductForm;
-use yii\data\ActiveDataProvider;
 use app\modules\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
 use yii\rest\Serializer;
@@ -35,19 +34,6 @@ class ProductController extends Controller
             return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
         }
         return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
-        // // join raw 
-        // $product = Product::find()
-        //     ->andFilterWhere(["LIKE", "categories.name", Yii::$app->request->getQueryParam("category_name")])
-        //     ->leftJoin("categories", "products.category_id=categories.id")
-        //     ->all();
-        // return $this->json($product);
-
-        // //join With
-        // $product = Product::find()
-        //     ->andFilterWhere(["LIKE", "categories.name", Yii::$app->request->getQueryParam("category_name")])
-        //     ->joinWith("category")
-        //     ->all();
-        // return $this->json($product);
     }
     public function actionCreate()
     {

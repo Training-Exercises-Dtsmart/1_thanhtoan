@@ -27,7 +27,6 @@ class UserController extends Controller
     {
         $user = new UserForm();
         $user->load(Yii::$app->request->post());
-
         if ($user->validate()) {
             if ($user->save()) {
                 return $this->json(true, $user, "User created successfully", HttpStatusCodes::CREATED);

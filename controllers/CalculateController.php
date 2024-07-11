@@ -14,32 +14,27 @@ class CalculateController extends Controller
     public function actionTotal()
     {
         $dataRequest = Yii::$app->request->post();
-
-        if (!empty($dataRequest['soa']) && !empty($dataRequest['sob'])) {
-            if (is_numeric($dataRequest['soa']) && is_numeric($dataRequest['sob'])) {
-                $total = $dataRequest['soa'] + $dataRequest['sob'];
-                return $this->json(true, $total, 'Calculate total successfully', HttpStatusCodes::OK);
-            } else {
-                return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
-            }
-        } else {
+        if (empty($dataRequest['soa']) || empty($dataRequest['sob'])) {
             return $this->json(false, [], 'Please provide soa and sob', HttpStatusCodes::BAD_REQUEST);
         }
+        if (!is_numeric($dataRequest['soa']) || !is_numeric($dataRequest['sob'])) {
+            return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
+        }
+        $total = $dataRequest['soa'] + $dataRequest['sob'];
+        return $this->json(true, $total, 'Calculate total successfully', HttpStatusCodes::OK);
     }
 
     public function actionDivide()
     {
         $dataRequest = Yii::$app->request->post();
-        if (!empty($dataRequest['soa']) && !empty($dataRequest['sob'])) {
-            if (is_numeric($dataRequest['soa']) && is_numeric($dataRequest['sob'])) {
-                $totalDevide = $dataRequest['soa'] / $dataRequest['sob'];
-                return $this->json(true, $totalDevide, 'Calculate successfully', HttpStatusCodes::OK);
-            } else {
-                return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
-            }
-        } else {
+        if (empty($dataRequest['soa']) || empty($dataRequest['sob'])) {
             return $this->json(false, [], 'Please provide soa and sob', HttpStatusCodes::BAD_REQUEST);
         }
+        if (!is_numeric($dataRequest['soa']) || !is_numeric($dataRequest['sob'])) {
+            return $this->json(false, [], 'Values must be numeric', HttpStatusCodes::UNPROCESSABLE_ENTITY);
+        }
+        $totalDevide = $dataRequest['soa'] / $dataRequest['sob'];
+        return $this->json(true, $totalDevide, 'Calculate divide successfully', HttpStatusCodes::OK);
     }
 
     public function actionAverage()
