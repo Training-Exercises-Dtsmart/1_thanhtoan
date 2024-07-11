@@ -22,6 +22,7 @@ class m240702_091151_create_user_table extends Migration
             'date_of_birth' => $this->date(),
             'profile_picture' => $this->string(),
             'access_token' => $this->string(),
+            'verification_token' => $this->string(),
             'is_verified' => $this->boolean()->defaultValue(false),
             'status' => $this->smallInteger()->defaultValue(0),
             'role' => $this->smallInteger()->defaultValue(0),
