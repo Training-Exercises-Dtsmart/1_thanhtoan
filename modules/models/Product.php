@@ -14,7 +14,7 @@ class Product extends BaseProduct
         ]);
     }
 
-    public function getCategoryName()
+    public function getCategoryName(): string
     {
         return isset($this->category) ? $this->category->name : "Product category not found";
     }

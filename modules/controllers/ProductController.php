@@ -6,9 +6,11 @@ use Yii;
 use app\controllers\Controller;
 use app\modules\models\Product;
 use app\modules\models\form\ProductForm;
+
 // use app\models\form\ProductForm;
 use app\modules\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
+use yii\db\StaleObjectException;
 use yii\rest\Serializer;
 
 class ProductController extends Controller
@@ -16,7 +18,7 @@ class ProductController extends Controller
     //pagination and SORT_DESC by created_at
     public function actionIndex()
     {
-        $dataProvider =  Product::getAllProducts();
+        $dataProvider = Product::getAllProducts();
         if (!$dataProvider->getModels()) {
             return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
         }
@@ -35,6 +37,7 @@ class ProductController extends Controller
         }
         return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
     }
+
     public function actionCreate()
     {
         $product = new ProductForm();
@@ -47,23 +50,28 @@ class ProductController extends Controller
         }
         return $this->json(true, $product, "Product created successfully", HttpStatusCodes::CREATED);
     }
+
     public function actionUpdate($product_id)
     {
         $product = ProductForm::find()->where(["id" => $product_id])->one();
         if (!$product) {
             return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
         }
-
         $product->load(Yii::$app->request->post());
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Invalid product data", HttpStatusCodes::BAD_REQUEST);
         }
         if (!$product->save()) {
-            return $this->json(false, $product->getErrors(), "Can't update product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            return $this->json(false, $product->getErrors(), "Can't update product",
+                HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
         return $this->json(true, $product, 'Update product successfully', HttpStatusCodes::OK);
     }
 
+    /**
+     * @throws \Throwable
+     * @throws StaleObjectException
+     */
     public function actionDelete($product_id)
     {
         $product = Product::find()->where(["id" => $product_id])->one();

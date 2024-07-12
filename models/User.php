@@ -1,6 +1,9 @@
 <?php
 
+
 namespace app\models;
+
+use Yii;
 
 use \app\models\base\User as BaseUser;
 
@@ -10,6 +13,7 @@ use \app\models\base\User as BaseUser;
 class User extends BaseUser
 {
     const STATUS_ACTIVE = 1;
+
     public function formName()
     {
         return '';
@@ -19,11 +23,13 @@ class User extends BaseUser
     {
         return self::find()->where(['status' => 1])->all();
     }
-    public static function findOneUser($user_id)
+
+    public static function findOneUser($user_id): ?User
     {
         return self::findOne($user_id);
     }
-    public static function findRecent($days = 7)
+
+    public static function findRecent($days = 7): array
     {
         $time = new \DateTime();
         $time->modify("-{$days} days");
