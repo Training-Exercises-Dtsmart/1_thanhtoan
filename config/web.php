@@ -39,7 +39,7 @@ $config = [
             'viewPath' => '@app/mail',
             // send all mails to a file by default.
             'useFileTransport' => true,
-            
+
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -65,18 +65,20 @@ $config = [
 
             ],
         ],
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
 
         'weather' => [
             'class' => 'app\components\WeatherComponent',
             'apiKey' => '10da2c1fa4fd45b196141841241007',
-        ]
-
+        ],
 
     ],
     'params' => $params,
 ];
 
-// Thiết lập alias cho thư mục 'common'
+// Config alias for folder 'common'
 Yii::setAlias('@common', dirname(__DIR__) . '/common');
 
 if (YII_ENV_DEV) {

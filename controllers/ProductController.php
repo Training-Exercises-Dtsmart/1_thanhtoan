@@ -5,16 +5,19 @@ namespace app\controllers;
 use app\models\form\ProductForm;
 use app\models\Product;
 use Yii;
+
 // use yii\rest\Controller;
-// fix here controller 
+// fix here controller
 use app\controllers\Controller;
 use app\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
+use yii\db\Exception;
+use yii\db\StaleObjectException;
 use yii\rest\Serializer;
 
 class ProductController extends controller
 {
-    public function actionIndex()
+    public function actionIndex(): array
     {
         $dataProvider = Product::getAllProducts();
         $serializer = new Serializer(['collectionEnvelope' => 'items']);
@@ -22,7 +25,7 @@ class ProductController extends controller
         return $this->json(true, $data, "Success", HttpStatusCodes::OK);
     }
 
-    public function actionSearch()
+    public function actionSearch(): array
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -32,7 +35,10 @@ class ProductController extends controller
         return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
     }
 
-    public function actionCreate()
+    /**
+     * @throws Exception
+     */
+    public function actionCreate(): array
     {
         $product = new ProductForm();
         $product->load(Yii::$app->request->post());
@@ -45,7 +51,10 @@ class ProductController extends controller
         return $this->json(true, $product, "Product created successfully", HttpStatusCodes::OK);
     }
 
-    public function actionUpdate($product_id)
+    /**
+     * @throws Exception
+     */
+    public function actionUpdate($product_id): array
     {
         $product = Product::find()->where(['id' => $product_id])->one();
         if (!$product) {
@@ -54,16 +63,21 @@ class ProductController extends controller
         $product->load(Yii::$app->request->post());
 
         if (!$product->validate()) {
-            return $this->json(false, ["error" => $product->getErrors()], "Validation failed", HttpStatusCodes::BAD_REQUEST);
+            return $this->json(false, ["error" => $product->getErrors()], "Validation failed",
+                HttpStatusCodes::BAD_REQUEST);
         }
-
         if (!$product->save()) {
-            return $this->json(false, $product->getErrors(), "Can't update product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            return $this->json(false, $product->getErrors(), "Can't update product",
+                HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
         return $this->json(true, $product, "Product updated successfully", HttpStatusCodes::OK);
     }
 
-    public function actionDelete($product_id)
+    /**
+     * @throws \Throwable
+     * @throws StaleObjectException
+     */
+    public function actionDelete($product_id): array
     {
         $product = Product::find()->where(['id' => $product_id])->one();
         if (!$product) {

@@ -9,14 +9,16 @@ class ProductSearch extends Product
 {
     public $keyword;
     public $category_name;
-    public function rules()
+
+    public function rules(): array
     {
         return [
             [['id', 'category_id', 'price', 'discount_price', 'stock', 'view_count', 'status'], 'integer'],
-            [['name', 'description', 'category_name', 'keyword'], 'safe'],
+            [['category_name', 'keyword'], 'safe'],
         ];
     }
-    public function search($params)
+
+    public function search($params): ActiveDataProvider
     {
         $query = Product::find()->joinWith('category');
         $dataProvider = new ActiveDataProvider([
@@ -30,7 +32,7 @@ class ProductSearch extends Product
             return $dataProvider;
         }
 
-        $query->andFilterWhere(['like', 'categories.name', $this->category_name])
+        $query->andFilterWhere(['like', 'category.name', $this->category_name])
             ->orFilterWhere(['like', 'product.name', $this->keyword]);
         return $dataProvider;
     }

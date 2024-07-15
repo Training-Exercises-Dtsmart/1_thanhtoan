@@ -10,13 +10,14 @@ use app\modules\models\form\ProductForm;
 // use app\models\form\ProductForm;
 use app\modules\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
+use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\rest\Serializer;
 
 class ProductController extends Controller
 {
     //pagination and SORT_DESC by created_at
-    public function actionIndex()
+    public function actionIndex(): array
     {
         $dataProvider = Product::getAllProducts();
         if (!$dataProvider->getModels()) {
@@ -28,7 +29,7 @@ class ProductController extends Controller
     }
 
     // search by keyword or category_name
-    public function actionSearch()
+    public function actionSearch(): array
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -38,7 +39,10 @@ class ProductController extends Controller
         return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
     }
 
-    public function actionCreate()
+    /**
+     * @throws Exception
+     */
+    public function actionCreate(): array
     {
         $product = new ProductForm();
         $product->load(Yii::$app->request->post());
@@ -51,7 +55,10 @@ class ProductController extends Controller
         return $this->json(true, $product, "Product created successfully", HttpStatusCodes::CREATED);
     }
 
-    public function actionUpdate($product_id)
+    /**
+     * @throws Exception
+     */
+    public function actionUpdate($product_id): array
     {
         $product = ProductForm::find()->where(["id" => $product_id])->one();
         if (!$product) {
@@ -72,13 +79,12 @@ class ProductController extends Controller
      * @throws \Throwable
      * @throws StaleObjectException
      */
-    public function actionDelete($product_id)
+    public function actionDelete($product_id): array
     {
         $product = Product::find()->where(["id" => $product_id])->one();
         if (!$product) {
             return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
         }
-
         if (!$product->delete()) {
             return $this->json(false, [], 'Failed to delete product', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }

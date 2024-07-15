@@ -3,16 +3,51 @@
 namespace app\modules\controllers;
 
 use Yii;
-use app\models\Post;
-// use
+use app\modules\models\Post;
 use app\modules\models\form\PostForm;
 use app\controllers\Controller;
-use yii\web\ServerErrorHttpException;
+use yii\db\Exception;
+use yii\db\StaleObjectException;
+use yii\filters\AccessControl;
+use yii\filters\auth\HttpBearerAuth;
 use common\helpers\HttpStatusCodes;
 
 class PostController extends Controller
 {
-    public function actionIndex()
+    public function behaviors(): array
+    {
+        $behaviors = parent::behaviors();
+
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::class,
+        ];
+
+        $behaviors['access'] = [
+            'class' => AccessControl::class,
+            'rules' => [
+                [
+                    'allow' => true,
+                    'actions' => ['create', 'update', 'delete'],
+                    'roles' => ['admin'],
+                ],
+                [
+                    'allow' => true,
+                    'actions' => ['create'],
+                    'roles' => ['author'],
+                ],
+                [
+                    'allow' => true,
+                    'actions' => ['index'],
+                    'roles' => ['@'],
+                ],
+            ],
+        ];
+
+        return $behaviors;
+    }
+
+
+    public function actionIndex(): array
     {
         $listPosts = Post::find()->all();
         if (!$listPosts) {
@@ -21,7 +56,10 @@ class PostController extends Controller
         return $this->json(true, $listPosts, "success", HttpStatusCodes::OK);
     }
 
-    public function actionCreate()
+    /**
+     * @throws Exception
+     */
+    public function actionCreate(): array
     {
         $post = new PostForm();
         $post->load(Yii::$app->request->post());
@@ -34,7 +72,10 @@ class PostController extends Controller
         return $this->json(true, $post, "Post created successfully", HttpStatusCodes::OK);
     }
 
-    public function actionUpdate($post_id)
+    /**
+     * @throws Exception
+     */
+    public function actionUpdate($post_id): array
     {
         $post = PostForm::find()->where(["id" => $post_id])->one();
         if (!$post) {
@@ -50,7 +91,12 @@ class PostController extends Controller
         return $this->json(true, $post, 'Update post successfully', HttpStatusCodes::OK);
     }
 
-    public function actionDelete($post_id)
+    /**
+     * @throws StaleObjectException
+     * @throws \Throwable
+     */
+
+    public function actionDelete($post_id): array
     {
         $post = Post::find()->where(["id" => $post_id])->one();
         if (!$post) {

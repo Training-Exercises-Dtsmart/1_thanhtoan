@@ -77,6 +77,7 @@ class UserController extends Controller
     /**
      * @throws Exception
      * @throws \yii\base\Exception
+     * @throws \Exception
      */
     public function actionRegister(): array
     {
@@ -89,12 +90,16 @@ class UserController extends Controller
         if (!$user->register()) {
             return $this->json(false, $user->getErrors(), 'Register failed', HttpStatusCodes::BAD_REQUEST);
         }
+
+        $auth = \Yii::$app->authManager;
+        $authorRole = $auth->getRole('author');
+        $auth->assign($authorRole, $user->getId());
+
         return $this->json(true, ['access_token' => $user->access_token, 'user' => $user], 'Register successfully',
             HttpStatusCodes::OK);
     }
 
     /**
-     * @throws Exception
      * @throws \Throwable
      */
     public function actionUpdate(): array

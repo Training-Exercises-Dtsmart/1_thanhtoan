@@ -4,6 +4,7 @@
 namespace app\controllers;
 
 use Yii;
+
 // use yii\rest\Controller;
 use app\controllers\Controller;
 use common\helpers\HttpStatusCodes;
@@ -11,7 +12,7 @@ use common\helpers\HttpStatusCodes;
 class CalculateController extends Controller
 {
 
-    public function actionTotal()
+    public function actionTotal(): array
     {
         $dataRequest = Yii::$app->request->post();
         if (empty($dataRequest['soa']) || empty($dataRequest['sob'])) {
@@ -24,7 +25,7 @@ class CalculateController extends Controller
         return $this->json(true, $total, 'Calculate total successfully', HttpStatusCodes::OK);
     }
 
-    public function actionDivide()
+    public function actionDivide(): array
     {
         $dataRequest = Yii::$app->request->post();
         if (empty($dataRequest['soa']) || empty($dataRequest['sob'])) {
@@ -37,7 +38,7 @@ class CalculateController extends Controller
         return $this->json(true, $totalDevide, 'Calculate divide successfully', HttpStatusCodes::OK);
     }
 
-    public function actionAverage()
+    public function actionAverage(): array
     {
         $data = Yii::$app->request->post();
         $numbers = [];
@@ -56,6 +57,6 @@ class CalculateController extends Controller
         $total = array_sum($numbers);
         $count = count($numbers);
         $average = $total / $count;
-        return $this->json(true,  $average, 'Calculate average successfully', HttpStatusCodes::OK);
+        return $this->json(true, $average, 'Calculate average successfully', HttpStatusCodes::OK);
     }
 }
