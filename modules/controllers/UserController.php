@@ -13,6 +13,7 @@ use app\modules\models\form\UserUpdateForm;
 use common\helpers\HttpStatusCodes;
 use yii\db\Exception;
 use yii\filters\auth\HttpBearerAuth;
+use yii\web\UploadedFile;
 
 class UserController extends Controller
 {
@@ -35,19 +36,19 @@ class UserController extends Controller
         return $this->json(true, $listCategories, "success", HttpStatusCodes::OK);
     }
 
-    public function actionCreate(): array
-    {
-        $userForm = new UserForm();
-        $userForm->load(Yii::$app->request->post());
-        if (!$userForm->validate()) {
-            return $this->json(false, $userForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
-        }
-        $user = $userForm->createUser();
-        if (!$user) {
-            return $this->json(false, [], 'Failed to create user', HttpStatusCodes::INTERNAL_SERVER_ERROR);
-        }
-        return $this->json(true, $user, 'User created successfully', HttpStatusCodes::CREATED);
-    }
+//    public function actionCreate(): array
+//    {
+//        $userForm = new UserForm();
+//        $userForm->load(Yii::$app->request->post());
+//        if (!$userForm->validate()) {
+//            return $this->json(false, $userForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+//        }
+//        $user = $userForm->createUser();
+//        if (!$user) {
+//            return $this->json(false, [], 'Failed to create user', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+//        }
+//        return $this->json(true, $user, 'User created successfully', HttpStatusCodes::CREATED);
+//    }
 
 
     /**
@@ -71,6 +72,9 @@ class UserController extends Controller
             return $this->json(false, $user->getErrors(), 'Password not match', HttpStatusCodes::BAD_REQUEST);
         }
         $user->generateAccessToken();
+        if (!$user->save()) {
+            return $this->json(false, $user->getErrors(), 'Error save', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
         return $this->json(true, $user, 'Login successfully', HttpStatusCodes::OK);
     }
 
@@ -107,6 +111,8 @@ class UserController extends Controller
         $user = Yii::$app->user->identity;
         $updateForm = new UserUpdateForm();
         $updateForm->load(Yii::$app->request->post());
+        // Get the uploaded file instance
+        $updateForm->profile_picture_file = UploadedFile::getInstance($updateForm, 'profile_picture_file');
         if (!$updateForm->validate()) {
             return $this->json(false, $updateForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
         }
