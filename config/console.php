@@ -6,7 +6,8 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic-console',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log', 'queue'],
+
     'controllerNamespace' => 'app\commands',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
@@ -43,6 +44,10 @@ $config = [
                 'username' => 'thanhtoan28740@gmail.com',
                 'password' => 'fhpu sbba nuay besb',
             ],
+        ],
+        'queue' => [
+            'class' => \yii\queue\file\Queue::class,
+            'path' => '@runtime/queue',
         ],
 
     ],

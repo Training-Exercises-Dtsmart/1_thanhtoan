@@ -27,6 +27,9 @@ class ProductController extends controller
 
     public function actionSearch(): array
     {
+        Yii::$container->set('yii\data\Pagination', [
+            'pageSizeLimit' => [1, 3],
+        ]);
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
         if (!$dataProvider->getModels()) {

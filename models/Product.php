@@ -12,16 +12,17 @@ class Product extends BaseProduct
 {
 
     const STATUS_ACTIVE = 1;
-    public function formName()
+
+    public function formName(): string
     {
         return '';
     }
 
-    public static function getAllProducts()
+    public static function getAllProducts(): ActiveDataProvider
     {
         $query = static::find();
-
-        $dataProvider = new ActiveDataProvider([
+        
+        return new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
                 'pageSize' => 10,
@@ -32,7 +33,5 @@ class Product extends BaseProduct
                 ]
             ],
         ]);
-
-        return $dataProvider;
     }
 }

@@ -6,7 +6,7 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log', 'queue'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
@@ -31,6 +31,7 @@ $config = [
             'identityClass' => 'app\modules\models\User',
             'enableAutoLogin' => false,
         ],
+
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
@@ -80,6 +81,10 @@ $config = [
             'class' => 'app\components\WeatherComponent',
             'apiKey' => '10da2c1fa4fd45b196141841241007',
         ],
+        'queue' => [
+            'class' => \yii\queue\file\Queue::class,
+            'path' => '@runtime/queue',
+        ],
 
     ],
     'params' => $params,
@@ -87,6 +92,7 @@ $config = [
 
 // Config alias for folder 'common'
 Yii::setAlias('@common', dirname(__DIR__) . '/common');
+
 
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment

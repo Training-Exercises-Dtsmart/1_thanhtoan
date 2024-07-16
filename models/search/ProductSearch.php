@@ -5,10 +5,14 @@ namespace app\models\search;
 use yii\data\ActiveDataProvider;
 use app\models\Product;
 
+//use app\components\Pagination;
+use Yii;
+
 class ProductSearch extends Product
 {
     public $keyword;
-    public function rules()
+
+    public function rules(): array
     {
         return [
             [['id', 'category_id', 'price', 'discount_price', 'stock', 'view_count', 'status'], 'integer'],
@@ -16,13 +20,14 @@ class ProductSearch extends Product
         ];
     }
 
-    public function search($params)
+    public function search($params): ActiveDataProvider
     {
         $query = Product::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
+
         $this->load($params);
 
         if (!$this->validate()) {
