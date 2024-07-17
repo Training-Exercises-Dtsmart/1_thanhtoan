@@ -20,6 +20,7 @@ class PostController extends Controller
 
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
+            'except' => ['index'],
         ];
 
         $behaviors['access'] = [

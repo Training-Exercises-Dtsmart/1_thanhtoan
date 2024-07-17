@@ -6,6 +6,8 @@ use Yii;
 use app\controllers\Controller;
 use app\modules\models\Product;
 use app\modules\models\form\ProductForm;
+use app\modules\models\form\ProductCreateForm;
+use app\modules\models\form\Image;
 
 // use app\models\form\ProductForm;
 use app\modules\models\search\ProductSearch;
@@ -13,10 +15,10 @@ use common\helpers\HttpStatusCodes;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\rest\Serializer;
+use yii\web\UploadedFile;
 
 class ProductController extends Controller
 {
-    //pagination and SORT_DESC by created_at
     public function actionIndex(): array
     {
         $dataProvider = Product::getAllProducts();
@@ -44,15 +46,31 @@ class ProductController extends Controller
      */
     public function actionCreate(): array
     {
-        $product = new ProductForm();
+        $product = new ProductCreateForm();
         $product->load(Yii::$app->request->post());
+        $product->images = UploadedFile::getInstances($product, 'images');
+
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
-        return $this->json(true, $product, "Product created successfully", HttpStatusCodes::CREATED);
+        
+        //upload multiple image
+        foreach ($product->images as $imageFile) {
+            $imageModel = new Image();
+            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
+            if ($imageFile->saveAs($filePath)) {
+                $imageModel->product_id = $product->id;
+                $imageModel->name = $imageFile->baseName . '.' . $imageFile->extension;
+//                $imageModel->path_url = $filePath;
+                $imageModel->save();
+            } else {
+                return $this->json(false, [], "Failed to save image", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            }
+        }
+        return $this->json(true, $product, "Product created successfully", HttpStatusCodes::OK);
     }
 
     /**
