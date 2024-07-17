@@ -54,9 +54,9 @@ abstract class User extends \yii\db\ActiveRecord
         $behaviors['timestamp'] = [
             'class' => TimestampBehavior::class,
             'value' => (new \DateTime())->format('Y-m-d H:i:s'),
-        ];
-
-        return $behaviors;
+                        ];
+        
+    return $behaviors;
     }
 
     /**

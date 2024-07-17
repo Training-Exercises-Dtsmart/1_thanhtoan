@@ -12,6 +12,7 @@ use app\modules\models\form\Image;
 // use app\models\form\ProductForm;
 use app\modules\models\search\ProductSearch;
 use common\helpers\HttpStatusCodes;
+use yii\data\ActiveDataProvider;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\rest\Serializer;
@@ -21,13 +22,22 @@ class ProductController extends Controller
 {
     public function actionIndex(): array
     {
-        $dataProvider = Product::getAllProducts();
-        if (!$dataProvider->getModels()) {
+        $cache = Yii::$app->cache;
+        $cacheKey = 'product_all';
+        // Check data cache
+        $dataProvider = $cache->get($cacheKey);
+        if ($dataProvider === false) {
+            // No data in cache, get data from database
+            $dataProvider = Product::getAllProducts();
+            // assign data to cache
+            $cache->set($cacheKey, $dataProvider, 3600);
+        }
+        if (!$dataProvider) {
             return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
         }
         $serializer = new Serializer(['collectionEnvelope' => 'items']);
         $data = $serializer->serialize($dataProvider);
-        return $this->json(true, $data, "Success", HttpStatusCodes::OK);
+        return $this->json(true, $data, 'success', HttpStatusCodes::OK);
     }
 
     // search by keyword or category_name
@@ -56,7 +66,7 @@ class ProductController extends Controller
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
-        
+
         //upload multiple image
         foreach ($product->images as $imageFile) {
             $imageModel = new Image();
