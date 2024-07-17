@@ -14,21 +14,11 @@ class User extends BaseUser
 {
     const STATUS_ACTIVE = 1;
 
-    public function formName()
+    public function formName(): string
     {
         return '';
     }
-
-    public static function findActive()
-    {
-        return self::find()->where(['status' => 1])->all();
-    }
-
-    public static function findOneUser($user_id): ?User
-    {
-        return self::findOne($user_id);
-    }
-
+    
     public static function findRecent($days = 7): array
     {
         $time = new \DateTime();

@@ -12,6 +12,8 @@ use app\modules\models\form\UserUpdateForm;
 
 use common\helpers\HttpStatusCodes;
 use yii\db\Exception;
+use yii\db\StaleObjectException;
+use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\UploadedFile;
 
@@ -24,32 +26,39 @@ class UserController extends Controller
             'class' => HttpBearerAuth::class,
             'except' => ['login', 'register'],
         ];
+
+        $behaviors['access'] = [
+            'class' => AccessControl::class,
+            'rules' => [
+                [
+                    'allow' => true,
+                    'actions' => ['update'],
+                    'roles' => ['author'],
+                ],
+                [
+                    'allow' => true,
+                    'actions' => ['delete', 'index'],
+                    'roles' => ['admin'],
+                ],
+                [
+                    'allow' => true,
+                    'actions' => ['login', 'register'],
+                    'roles' => ['@']
+                ],
+
+            ]
+        ];
         return $behaviors;
     }
 
     public function actionIndex(): array
     {
-        $listCategories = User::find()->all();
-        if (!$listCategories) {
+        $listUser = User::find()->all();
+        if (!$listUser) {
             return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
         }
-        return $this->json(true, $listCategories, "success", HttpStatusCodes::OK);
+        return $this->json(true, $listUser, "success", HttpStatusCodes::OK);
     }
-
-//    public function actionCreate(): array
-//    {
-//        $userForm = new UserForm();
-//        $userForm->load(Yii::$app->request->post());
-//        if (!$userForm->validate()) {
-//            return $this->json(false, $userForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
-//        }
-//        $user = $userForm->createUser();
-//        if (!$user) {
-//            return $this->json(false, [], 'Failed to create user', HttpStatusCodes::INTERNAL_SERVER_ERROR);
-//        }
-//        return $this->json(true, $user, 'User created successfully', HttpStatusCodes::CREATED);
-//    }
-
 
     /**
      * @throws Exception
@@ -94,11 +103,9 @@ class UserController extends Controller
         if (!$user->register()) {
             return $this->json(false, $user->getErrors(), 'Register failed', HttpStatusCodes::BAD_REQUEST);
         }
-
         $auth = \Yii::$app->authManager;
         $authorRole = $auth->getRole('author');
         $auth->assign($authorRole, $user->getId());
-
         return $this->json(true, ['access_token' => $user->access_token, 'user' => $user], 'Register successfully',
             HttpStatusCodes::OK);
     }
@@ -129,11 +136,26 @@ class UserController extends Controller
     {
         $user = Yii::$app->user->identity;
         $user->access_token = null;
-
         if ($user->save(false)) {
             return $this->json(true, null, 'Logged out successfully', HttpStatusCodes::OK);
         } else {
             return $this->json(false, $user->getErrors(), 'Logout failed', HttpStatusCodes::BAD_REQUEST);
         }
+    }
+
+    /**
+     * @throws \Throwable
+     * @throws StaleObjectException
+     */
+    public function actionDelete($user_id): array
+    {
+        $user = User::find()->where(['id' => $user_id])->one();
+        if (!$user) {
+            return $this->json(true, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
+        if (!$user->delete()) {
+            return $this->json(false, $user->getErrors(), 'Delete failed', HttpStatusCodes::BAD_REQUEST);
+        }
+        return $this->json(true, [], 'Deleted user successfully', HttpStatusCodes::OK);
     }
 }
