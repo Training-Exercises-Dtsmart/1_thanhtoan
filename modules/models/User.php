@@ -52,6 +52,14 @@ class User extends BaseUser implements IdentityInterface
         $this->access_token = Yii::$app->security->generateRandomString();
     }
 
+    /**
+     * @throws Exception
+     */
+    public function generateVerificationToken()
+    {
+        $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
+    }
+
 
     public function getId()
     {

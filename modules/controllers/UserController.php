@@ -5,7 +5,6 @@ namespace app\modules\controllers;
 use Yii;
 use app\controllers\Controller;
 use app\modules\models\User;
-use app\modules\models\form\UserForm;
 use app\modules\models\form\UserLoginForm;
 use app\modules\models\form\UserRegisterForm;
 use app\modules\models\form\UserUpdateForm;
@@ -24,12 +23,17 @@ class UserController extends Controller
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['login', 'register'],
+            'except' => ['login', 'register', 'verify-email'],
         ];
-
+        
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
+                [
+                    'allow' => true,
+                    'actions' => ['login', 'register', 'verify-email'],
+                    'roles' => ['?']
+                ],
                 [
                     'allow' => true,
                     'actions' => ['update'],
@@ -40,13 +44,7 @@ class UserController extends Controller
                     'actions' => ['delete', 'index'],
                     'roles' => ['admin'],
                 ],
-                [
-                    'allow' => true,
-                    'actions' => ['login', 'register'],
-                    'roles' => ['@']
-                ],
-
-            ]
+            ],
         ];
         return $behaviors;
     }
@@ -106,7 +104,7 @@ class UserController extends Controller
         $auth = \Yii::$app->authManager;
         $authorRole = $auth->getRole('author');
         $auth->assign($authorRole, $user->getId());
-        return $this->json(true, ['access_token' => $user->access_token, 'user' => $user], 'Register successfully',
+        return $this->json(true, ['user' => $user], 'Register successfully',
             HttpStatusCodes::OK);
     }
 
@@ -157,5 +155,24 @@ class UserController extends Controller
             return $this->json(false, $user->getErrors(), 'Delete failed', HttpStatusCodes::BAD_REQUEST);
         }
         return $this->json(true, [], 'Deleted user successfully', HttpStatusCodes::OK);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function actionVerifyEmail($token): array
+    {
+        $user = User::find()->where(['verification_token' => $token])->one();
+        if (!$user) {
+            return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
+        $user->is_verified = 1;
+        $user->verification_token = null;
+        if ($user->save(false)) {
+            return $this->json(true, [], 'Your email has been verified successfully.', HttpStatusCodes::OK);
+        } else {
+            return $this->json(false, null, 'The verification link is invalid or expired.',
+                HttpStatusCodes::BAD_REQUEST);
+        }
     }
 }
