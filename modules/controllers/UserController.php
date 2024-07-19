@@ -73,9 +73,11 @@ class UserController extends Controller
         if (!$user) {
             return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
         }
-
         if (!$user->validatePassword($loginForm->password_hash)) {
             return $this->json(false, $user->getErrors(), 'Password not match', HttpStatusCodes::BAD_REQUEST);
+        }
+        if ($user->is_verified === 0) {
+            return $this->json(false, $user->getErrors(), 'User is not verified', HttpStatusCodes::NOT_FOUND);
         }
         $user->generateAccessToken();
         if (!$user->save()) {

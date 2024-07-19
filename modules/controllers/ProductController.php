@@ -2,6 +2,7 @@
 
 namespace app\modules\controllers;
 
+use app\modules\models\form\ProductUpdateForm;
 use Yii;
 use app\controllers\Controller;
 use app\modules\models\Product;
@@ -15,11 +16,40 @@ use common\helpers\HttpStatusCodes;
 use yii\data\ActiveDataProvider;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
+use yii\filters\AccessControl;
+use yii\filters\auth\HttpBasicAuth;
+use yii\filters\auth\HttpBearerAuth;
 use yii\rest\Serializer;
 use yii\web\UploadedFile;
 
 class ProductController extends Controller
 {
+    public function behaviors(): array
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::class,
+            'except' => ['index'],
+        ];
+
+        $behaviors['access'] = [
+            'class' => AccessControl::class,
+            'rules' => [
+                [
+                    'allow' => true,
+                    'actions' => ['index'],
+                    'roles' => ['?']
+                ],
+                [
+                    'allow' => true,
+                    'actions' => ['create', 'update', 'delete'],
+                    'roles' => ['admin'],
+                ]
+            ],
+        ];
+        return $behaviors;
+    }
+
     public function actionIndex(): array
     {
         $cache = Yii::$app->cache;
@@ -41,16 +71,16 @@ class ProductController extends Controller
     }
 
     // search by keyword or category_name
-    public function actionSearch(): ActiveDataProvider
+    public function actionSearch(): array
     {
-        return (new ProductSearch)->search(Yii::$app->request->queryParams);
-
-//        $searchModel = new ProductSearch();
-//        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-//        if (!$dataProvider->getModels()) {
-//            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
-//        }
-//        return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
+        $searchModel = new ProductSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        if (!$dataProvider->getModels()) {
+            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
+        }
+        $serializer = new Serializer(['collectionEnvelope' => 'items']);
+        $data = $serializer->serialize($dataProvider);
+        return $this->json(true, $data, "Search result", HttpStatusCodes::OK);
     }
 
     /**
@@ -68,7 +98,6 @@ class ProductController extends Controller
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
-
         //upload multiple image
         foreach ($product->images as $imageFile) {
             $imageModel = new Image();
@@ -79,7 +108,7 @@ class ProductController extends Controller
 //                $imageModel->path_url = $filePath;
                 $imageModel->save();
             } else {
-                return $this->json(false, [], "Failed to save image", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+                return $this->json(false, [], "Failed to save image", HttpStatusCodes::BAD_REQUEST);
             }
         }
         return $this->json(true, $product, "Product created successfully", HttpStatusCodes::OK);
@@ -90,17 +119,31 @@ class ProductController extends Controller
      */
     public function actionUpdate($product_id): array
     {
-        $product = ProductForm::find()->where(["id" => $product_id])->one();
+        $product = ProductUpdateForm::find()->where(["id" => $product_id])->one();
         if (!$product) {
             return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
         }
+        $product->images = UploadedFile::getInstances($product, 'images');
         $product->load(Yii::$app->request->post());
+
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Invalid product data", HttpStatusCodes::BAD_REQUEST);
         }
         if (!$product->save()) {
             return $this->json(false, $product->getErrors(), "Can't update product",
                 HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        //upload multiple image
+        foreach ($product->images as $imageFile) {
+            $imageModel = new Image();
+            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
+            if ($imageFile->saveAs($filePath)) {
+                $imageModel->product_id = $product->id;
+                $imageModel->name = $imageFile->baseName . '.' . $imageFile->extension;
+                $imageModel->save();
+            } else {
+                return $this->json(false, [], "Failed to save image", HttpStatusCodes::BAD_REQUEST);
+            }
         }
         return $this->json(true, $product, 'Update product successfully', HttpStatusCodes::OK);
     }
@@ -114,6 +157,17 @@ class ProductController extends Controller
         $product = Product::find()->where(["id" => $product_id])->one();
         if (!$product) {
             return $this->json(false, [], 'Product not found', HttpStatusCodes::NOT_FOUND);
+        }
+        //delete existing images by product
+        $images = Image::find()->where(["product_id" => $product_id])->all();
+        foreach ($images as $image) {
+            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $image->name;
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            if (!$image->delete()) {
+                return $this->json(false, [], "Failed to delete image", HttpStatusCodes::INTERNAL_SERVER_ERROR);
+            }
         }
         if (!$product->delete()) {
             return $this->json(false, [], 'Failed to delete product', HttpStatusCodes::INTERNAL_SERVER_ERROR);
