@@ -25,7 +25,7 @@ class UserController extends Controller
             'class' => HttpBearerAuth::class,
             'except' => ['login', 'register', 'verify-email'],
         ];
-        
+
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
@@ -70,7 +70,6 @@ class UserController extends Controller
             return $this->json(false, $loginForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
         }
         $user = $loginForm::findByUsername($loginForm->username);
-
         if (!$user) {
             return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
         }

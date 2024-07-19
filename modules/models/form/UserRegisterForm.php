@@ -37,9 +37,6 @@ class UserRegisterForm extends User
         $this->status = 0;
         $this->setPassword($this->password_hash);
         $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
-//        var_dump($this->getAttributes());
-//        die;
-//        $this->generateAccessToken();
         if ($this->save()) {
             $this->sendVerificationEmail($this);
             return $this;
@@ -53,7 +50,7 @@ class UserRegisterForm extends User
             'api/user/verify-email',
             'token' => $user->verification_token
         ]);
-
+        
         Yii::$app->queue->push(new \app\modules\jobs\SendVerificationEmailJob([
             'email' => $user->email,
             'username' => $user->username,

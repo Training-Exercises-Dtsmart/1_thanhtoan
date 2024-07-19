@@ -6,8 +6,5 @@ use app\modules\models\Product;
 
 class ProductForm extends Product
 {
-    public function rules()
-    {
-        
-    }
+
 }

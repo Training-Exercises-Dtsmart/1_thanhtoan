@@ -33,13 +33,8 @@ class PostController extends Controller
                 ],
                 [
                     'allow' => true,
-                    'actions' => ['create'],
-                    'roles' => ['author'],
-                ],
-                [
-                    'allow' => true,
                     'actions' => ['index'],
-                    'roles' => ['@'],
+                    'roles' => ['?'],
                 ],
             ],
         ];
@@ -103,7 +98,6 @@ class PostController extends Controller
         if (!$post) {
             return $this->json(false, [], 'Post not found', HttpStatusCodes::NOT_FOUND);
         }
-
         if (!$post->delete()) {
             return $this->json(false, [], 'Failed to delete post', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }

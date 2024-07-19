@@ -7,7 +7,4 @@ use Yii;
 
 class UserForm extends User
 {
-    public function createUser()
-    {
-    }
 }

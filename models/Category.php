@@ -10,7 +10,8 @@ use \app\models\base\Category as BaseCategory;
 class Category extends BaseCategory
 {
     const STATUS_ACTIVE = 1;
-    public function formName()
+
+    public function formName(): string
     {
         return "";
     }

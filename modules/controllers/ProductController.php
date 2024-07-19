@@ -41,14 +41,16 @@ class ProductController extends Controller
     }
 
     // search by keyword or category_name
-    public function actionSearch(): array
+    public function actionSearch(): ActiveDataProvider
     {
-        $searchModel = new ProductSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        if (!$dataProvider->getModels()) {
-            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
-        }
-        return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
+        return (new ProductSearch)->search(Yii::$app->request->queryParams);
+
+//        $searchModel = new ProductSearch();
+//        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+//        if (!$dataProvider->getModels()) {
+//            return $this->json(false, [], "No product found", HttpStatusCodes::NOT_FOUND);
+//        }
+//        return $this->json(true, $dataProvider->getModels(), "Search result", HttpStatusCodes::OK);
     }
 
     /**
