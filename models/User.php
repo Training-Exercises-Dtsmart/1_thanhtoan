@@ -18,11 +18,12 @@ class User extends BaseUser
     {
         return '';
     }
-    
+
     public static function findRecent($days = 7): array
     {
         $time = new \DateTime();
         $time->modify("-{$days} days");
         return self::find()->where(['>=', 'created_at', $time->format('Y-m-d H:i:s')])->all();
     }
+
 }

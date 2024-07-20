@@ -8,7 +8,8 @@ use app\modules\models\User;
 use app\modules\models\form\UserLoginForm;
 use app\modules\models\form\UserRegisterForm;
 use app\modules\models\form\UserUpdateForm;
-
+use app\modules\models\form\UserSendMailForgotPasswordForm;
+use app\modules\models\form\ResetPasswordForm;
 use common\helpers\HttpStatusCodes;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
@@ -23,7 +24,14 @@ class UserController extends Controller
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['login', 'register', 'verify-email'],
+            'except' => [
+                'login',
+                'register',
+                'verify-email',
+                'forgot-password',
+                'reset-password',
+                'change-password-forgot'
+            ],
         ];
 
         $behaviors['access'] = [
@@ -31,7 +39,14 @@ class UserController extends Controller
             'rules' => [
                 [
                     'allow' => true,
-                    'actions' => ['login', 'register', 'verify-email'],
+                    'actions' => [
+                        'login',
+                        'register',
+                        'verify-email',
+                        'forgot-password',
+                        'reset-password',
+                        'change-password-forgot'
+                    ],
                     'roles' => ['?']
                 ],
                 [
@@ -176,4 +191,47 @@ class UserController extends Controller
                 HttpStatusCodes::BAD_REQUEST);
         }
     }
+
+    /**
+     * @throws \yii\base\Exception
+     */
+    public function actionForgotPassword(): array
+    {
+        $userRequest = new UserSendMailForgotPasswordForm();
+        $userRequest->load(Yii::$app->request->post());
+        if (!$userRequest->validate()) {
+            return $this->json(false, $userRequest->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+        }
+        $user = UserSendMailForgotPasswordForm::find()->where(['email' => $userRequest->email])->one();
+        if (!$user) {
+            return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
+        if (!$user->sendEmailResetPassword()) {
+            return $this->json(true, $user, 'Send email forgot password successfully', HttpStatusCodes::OK);
+        }
+        return $this->json(false, $user->getErrors(), 'Send email forgot password errors',
+            HttpStatusCodes::BAD_REQUEST);
+    }
+
+    /**
+     * @throws \yii\base\Exception
+     * @throws Exception
+     */
+    public function actionChangePasswordForgot($token): array
+    {
+        $user = User::find()->where(['password_reset_token' => $token])->one();
+        if (!$user) {
+            return $this->json(false, [], 'URL not found', HttpStatusCodes::NOT_FOUND);
+        }
+        $userRequest = new ResetPasswordForm();
+        $userRequest->load(Yii::$app->request->post());
+        if (!$userRequest->validate()) {
+            return $this->json(false, $userRequest->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+        }
+        if ($userRequest->resetPassword($user)) {
+            return $this->json(true, [], 'Change password successfully', HttpStatusCodes::OK);
+        }
+        return $this->json(false, $userRequest->getErrors(), 'Change password errors', HttpStatusCodes::BAD_REQUEST);
+    }
+
 }

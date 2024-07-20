@@ -25,6 +25,7 @@ use \app\models\query\UserQuery;
  * @property integer $is_verified
  * @property integer $status
  * @property integer $role
+ * @property string $password_reset_token
  * @property string $created_at
  * @property string $updated_at
  *
@@ -71,9 +72,10 @@ abstract class User extends \yii\db\ActiveRecord
             [['date_of_birth'], 'safe'],
             [['username'], 'string', 'max' => 50],
             [['email', 'full_name'], 'string', 'max' => 100],
-            [['password_hash', 'profile_picture', 'access_token', 'verification_token'], 'string', 'max' => 255],
+            [['password_hash', 'profile_picture', 'access_token', 'verification_token', 'password_reset_token'], 'string', 'max' => 255],
             [['username'], 'unique'],
-            [['email'], 'unique']
+            [['email'], 'unique'],
+            [['password_reset_token'], 'unique']
         ]);
     }
 
@@ -98,6 +100,7 @@ abstract class User extends \yii\db\ActiveRecord
             'role' => 'Role',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+            'password_reset_token' => 'Password Reset Token',
         ]);
     }
 
