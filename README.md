@@ -1,4 +1,3 @@
-![image](https://github.com/user-attachments/assets/cfb762f5-7b7c-4326-999f-e6b9f88eda7b)
 
 <h1 align="center">**************** DAY 1 ****************</h1>
 
@@ -375,6 +374,7 @@ composer require --prefer-dist yiisoft/yii2-queue
 
 
 
+
 -------
 <h1 align="center">**************** DAY 9 ****************</h1>
 
@@ -407,5 +407,61 @@ composer require --prefer-dist yiisoft/yii2-queue
 ![image](https://github.com/user-attachments/assets/8525fcbd-cf32-4166-8a27-92f231ae3772)
 
 ![image](https://github.com/user-attachments/assets/b4286901-0125-4d25-b7e6-5945ea31a5ec)
+
+
+
+
+
+
+
+
+
+
+
+
+-------
+<h1 align="center">**************** DAY 10 ****************</h1>
+
+- ### RBAC, Create and update multiple products with more images and delete images when deleting a product
+ - #### RBAC Product
+![image](https://github.com/user-attachments/assets/8e5c0315-98a4-407a-87db-e442530a48b1)
+
+
+ - #### Update multiple
+![image](https://github.com/user-attachments/assets/645110e1-c7da-4f9f-ba62-99ab299751dd)
+
+![image](https://github.com/user-attachments/assets/1e513dd1-8a95-4b79-b038-efa2adca601c)
+
+![image](https://github.com/user-attachments/assets/df82180f-7299-4375-a1b5-af5765a80521)
+
+![image](https://github.com/user-attachments/assets/07bac6c5-f739-49b9-953f-0aa2fb6fee8f)
+
+![image](https://github.com/user-attachments/assets/b4e0cd1e-891e-426b-8b16-9fbdc9a7e164)
+
+ - #### Test create multiple product images
+![image](https://github.com/user-attachments/assets/86f8831e-8d98-4780-ad28-371fb5948a07)
+
+![image](https://github.com/user-attachments/assets/1f438943-dfe3-4926-b0fa-93024835553d)
+
+![image](https://github.com/user-attachments/assets/a18022fd-1b29-4cf9-a27e-a4134cb323fa)
+
+![image](https://github.com/user-attachments/assets/f244f272-0db7-4171-a433-bc4416290c65)
+
+![image](https://github.com/user-attachments/assets/fcd6b781-bf20-4d6f-8686-166144324c71)
+
+ - #### Test update multiple product images
+
+![image](https://github.com/user-attachments/assets/b47a3587-ed38-4b25-80e9-30506856e5f4)
+
+![image](https://github.com/user-attachments/assets/48043192-a1d8-4999-97dc-fd43a410cb4a)
+
+![image](https://github.com/user-attachments/assets/85d0f589-ca6a-4ae4-adeb-b1ee76888be3)
+
+ - #### Test Delete product and image
+![image](https://github.com/user-attachments/assets/4662bbf8-a0c5-4243-aec7-d2b7b01f8227)
+![image](https://github.com/user-attachments/assets/de015d3f-c768-4a99-a6d6-98ed67b22c0f)
+![image](https://github.com/user-attachments/assets/6814464b-a565-40f7-a44d-64a31225908b)
+![image](https://github.com/user-attachments/assets/9a3140b6-27ec-4d46-b21f-32e1ffa72635)
+
 
 
