@@ -1,5 +1,7 @@
 <?php
 
+use yii\filters\Cors;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -13,8 +15,22 @@ $config = [
     ],
     'modules' => [
         // 'modules' => [
-        'api' => 'app\modules\Module',
+//        'api' => 'app\modules\Module',
+
+        'api' => [
+            'class' => 'app\modules\Module',
+            'as corsFilter' => [
+                'class' => Cors::class,
+                'cors' => [
+                    'Origin' => ['*'],
+                    'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+                    'Access-Control-Request-Headers' => ['*'],
+                ],
+            ],
+        ],
+
         // ],
+
     ],
     'components' => [
         'request' => [
