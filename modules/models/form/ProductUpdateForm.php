@@ -11,7 +11,7 @@ class ProductUpdateForm extends Product
     public function rules(): array
     {
         return [
-            [['category_id'], 'integer'],
+            [['category_id'], 'required'],
             [['user_id'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['price'], 'double'],

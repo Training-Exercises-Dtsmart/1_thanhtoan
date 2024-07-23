@@ -10,6 +10,7 @@ use app\modules\models\form\UserRegisterForm;
 use app\modules\models\form\UserUpdateForm;
 use app\modules\models\form\UserSendMailForgotPasswordForm;
 use app\modules\models\form\ResetPasswordForm;
+use app\modules\models\form\UserUpdateProfileForm;
 use common\helpers\HttpStatusCodes;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
@@ -34,6 +35,7 @@ class UserController extends Controller
             ],
         ];
 
+
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
@@ -51,16 +53,18 @@ class UserController extends Controller
                 ],
                 [
                     'allow' => true,
-                    'actions' => ['update'],
+                    'actions' => ['update-profile', 'logout'],
                     'roles' => ['author'],
                 ],
                 [
                     'allow' => true,
-                    'actions' => ['delete', 'index'],
+                    'actions' => ['delete', 'index', 'update-user'],
                     'roles' => ['admin'],
                 ],
             ],
         ];
+
+
         return $behaviors;
     }
 
@@ -127,20 +131,34 @@ class UserController extends Controller
     /**
      * @throws \Throwable
      */
-    public function actionUpdate(): array
+    public function actionUpdateProfile(): array
     {
         $user = Yii::$app->user->identity;
-        $updateForm = new UserUpdateForm();
+        $updateForm = UserUpdateProfileForm::find()->where(['id' => $user->id])->one();
         $updateForm->load(Yii::$app->request->post());
-        // Get the uploaded file instance
         $updateForm->profile_picture_file = UploadedFile::getInstance($updateForm, 'profile_picture_file');
         if (!$updateForm->validate()) {
             return $this->json(false, $updateForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
         }
-        if (!$updateForm->updateUser($user)) {
+        if (!$updateForm->upDateUserProfile()) {
             return $this->json(false, $updateForm->getErrors(), 'Update failed', HttpStatusCodes::BAD_REQUEST);
         }
-        return $this->json(true, $user, 'Updated successfully', HttpStatusCodes::OK);
+        return $this->json(true, $updateForm, 'Updated successfully', HttpStatusCodes::OK);
+    }
+
+    public function actionUpdateUser(): array
+    {
+        $user = Yii::$app->user->identity;
+        $updateForm = UserUpdateForm::find()->where(['id' => $user->id])->one();
+        $updateForm->load(Yii::$app->request->post());
+        $updateForm->profile_picture_file = UploadedFile::getInstance($updateForm, 'profile_picture_file');
+        if (!$updateForm->validate()) {
+            return $this->json(false, $updateForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+        }
+        if (!$updateForm->updateUser()) {
+            return $this->json(false, $updateForm->getErrors(), 'Update failed', HttpStatusCodes::BAD_REQUEST);
+        }
+        return $this->json(true, $updateForm, 'Updated successfully', HttpStatusCodes::OK);
     }
 
     /**
@@ -197,20 +215,20 @@ class UserController extends Controller
      */
     public function actionForgotPassword(): array
     {
-        $userRequest = new UserSendMailForgotPasswordForm();
-        $userRequest->load(Yii::$app->request->post());
-        if (!$userRequest->validate()) {
-            return $this->json(false, $userRequest->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+        $userForm = new UserSendMailForgotPasswordForm();
+        $userForm->email = Yii::$app->request->post('email');
+        if (!$userForm->validate()) {
+            return $this->json(false, $userForm->getErrors(), 'Validation failed', HttpStatusCodes::BAD_REQUEST);
         }
-        $user = UserSendMailForgotPasswordForm::find()->where(['email' => $userRequest->email])->one();
+        $user = UserSendMailForgotPasswordForm::find()->where(['email' => $userForm->email])->one();
         if (!$user) {
             return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
         }
         if (!$user->sendEmailResetPassword()) {
-            return $this->json(true, $user, 'Send email forgot password successfully', HttpStatusCodes::OK);
+            return $this->json(false, $user->getErrors(), 'Send email forgot password errors',
+                HttpStatusCodes::BAD_REQUEST);
         }
-        return $this->json(false, $user->getErrors(), 'Send email forgot password errors',
-            HttpStatusCodes::BAD_REQUEST);
+        return $this->json(true, $user, 'Send email forgot password successfully', HttpStatusCodes::OK);
     }
 
     /**
@@ -219,19 +237,18 @@ class UserController extends Controller
      */
     public function actionChangePasswordForgot($token): array
     {
-        $user = User::find()->where(['password_reset_token' => $token])->one();
+        $user = ResetPasswordForm::find()->where(['password_reset_token' => $token])->one();
         if (!$user) {
             return $this->json(false, [], 'URL not found', HttpStatusCodes::NOT_FOUND);
         }
-        $userRequest = new ResetPasswordForm();
-        $userRequest->load(Yii::$app->request->post());
-        if (!$userRequest->validate()) {
-            return $this->json(false, $userRequest->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
+        $user->load(Yii::$app->request->post());
+        if (!$user->validate()) {
+            return $this->json(false, $user->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
         }
-        if ($userRequest->resetPassword($user)) {
+        if ($user->resetPassword()) {
             return $this->json(true, [], 'Change password successfully', HttpStatusCodes::OK);
         }
-        return $this->json(false, $userRequest->getErrors(), 'Change password errors', HttpStatusCodes::BAD_REQUEST);
+        return $this->json(false, $user->getErrors(), 'Change password errors', HttpStatusCodes::BAD_REQUEST);
     }
 
 }

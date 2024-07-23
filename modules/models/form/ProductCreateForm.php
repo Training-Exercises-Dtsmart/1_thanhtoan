@@ -13,8 +13,6 @@ class ProductCreateForm extends Product
         return [
             [['category_id'], 'required'],
             [['category_id'], 'integer'],
-            [['user_id'], 'required'],
-            [['user_id'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['price'], 'double'],
             [['discount_price'], 'double'],

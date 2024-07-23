@@ -2,17 +2,8 @@
 
 namespace app\modules\controllers;
 
-use app\modules\models\form\ProductUpdateForm;
 use Yii;
-use app\controllers\Controller;
-use app\modules\models\Product;
-use app\modules\models\form\ProductForm;
-use app\modules\models\form\ProductCreateForm;
-use app\modules\models\form\Image;
-
-// use app\models\form\ProductForm;
-use app\modules\models\search\ProductSearch;
-use common\helpers\HttpStatusCodes;
+use yii\behaviors\BlameableBehavior;
 use yii\data\ActiveDataProvider;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
@@ -22,6 +13,17 @@ use yii\filters\auth\HttpBearerAuth;
 use yii\rest\Serializer;
 use yii\web\UploadedFile;
 
+use app\controllers\Controller;
+use app\modules\models\form\ProductUpdateForm;
+use app\modules\models\Product;
+use app\modules\models\form\ProductForm;
+use app\modules\models\form\ProductCreateForm;
+use app\modules\models\form\Image;
+
+// use app\models\form\ProductForm;
+use app\modules\models\search\ProductSearch;
+use common\helpers\HttpStatusCodes;
+
 class ProductController extends Controller
 {
     public function behaviors(): array
@@ -30,6 +32,11 @@ class ProductController extends Controller
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
             'except' => ['index'],
+        ];
+        
+        $behaviors['BlameableBehavior'] = [
+            'class' => BlameableBehavior::class,
+            'createdByAttribute' => 'user_id',
         ];
 
         $behaviors['access'] = [
@@ -95,6 +102,7 @@ class ProductController extends Controller
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
+        $product->user_id = Yii::$app->user->id;
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }

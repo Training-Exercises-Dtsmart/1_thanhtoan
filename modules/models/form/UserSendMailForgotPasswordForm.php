@@ -14,17 +14,16 @@ class UserSendMailForgotPasswordForm extends User
         return [
             [['email'], 'required'],
             [['email'], 'email'],
+            [['email'], 'string', 'max' => 100],
         ];
     }
 
     /**
      * @throws Exception
      */
-    public function sendEmailResetPassword()
+    public function sendEmailResetPassword(): bool
     {
         $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
-//        var_dump($this->username);
-//        die;
         if ($this->save()) {
             $verificationLink = Yii::$app->urlManager->createAbsoluteUrl([
                 'api/user/change-password',
@@ -35,6 +34,8 @@ class UserSendMailForgotPasswordForm extends User
                 'username' => $this->username,
                 'verificationLink' => $verificationLink,
             ]));
+            return true;
         }
+        return false;
     }
 }

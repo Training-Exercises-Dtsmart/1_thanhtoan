@@ -2,40 +2,61 @@
 
 namespace app\modules\models\form;
 
-use yii;
 use app\modules\models\User;
+use Yii;
 use yii\base\Exception;
 
-class UserUpdateForm extends User
+class UserUpdateProfileForm extends User
 {
-    /**
-     * @var mixed|yii\web\UploadedFile|null
-     */
     public $profile_picture_file;
 
     public function rules(): array
     {
-        return array_merge(parent::rules(), [
+        return [
+            [['username', 'email'], 'required'],
+            [['email'], 'email'],
+            [['username', 'email', 'full_name'], 'string', 'max' => 100],
+            [['gender'], 'integer'],
+            [['date_of_birth'], 'safe'],
+            [['profile_picture'], 'string', 'max' => 255],
+            [['username'], 'unique',],
+            [['email'], 'unique'],
             [['profile_picture_file'], 'file', 'skipOnEmpty' => true, 'extensions' => 'png, jpg, jpeg'],
             [
                 [
+                    'status',
                     'password_hash',
                     'access_token',
                     'verification_token',
                     'is_verified',
+                    'status',
+                    'role',
                     'password_reset_token',
+                    'username',
                 ],
                 'validateNotChange'
             ],
-        ]);
+        ];
+    }
+
+    public function validateNotChange($attribute)
+    {
+        if (!$this->isNewRecord && $this->$attribute !== $this->getOldAttribute($attribute)) {
+            $this->addError($attribute, "You are not allowed to update the {$attribute} field.");
+        }
     }
 
     /**
      * @throws Exception
      */
-    public function updateUser(): bool
+    public function upDateUserProfile(): bool
     {
         $user = $this;
+        $user->username = $this->username;
+        $user->email = $this->email;
+        $user->gender = $this->gender;
+        $user->full_name = $this->full_name;
+        $user->date_of_birth = $this->date_of_birth;
         if ($this->profile_picture_file !== null) {
             $uploadPath = Yii::getAlias('@app/modules/uploads/');
             $fileName = Yii::$app->security->generateRandomString() . '.' . $this->profile_picture_file->extension;
@@ -52,13 +73,4 @@ class UserUpdateForm extends User
         }
         return $user->save(false);
     }
-
-    public function validateNotChange($attribute)
-    {
-        if (!$this->isNewRecord && $this->$attribute !== $this->getOldAttribute($attribute)) {
-            $this->addError($attribute, "You are not allowed to update the {$attribute} field.");
-        }
-    }
-
-
 }
