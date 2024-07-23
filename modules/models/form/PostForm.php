@@ -6,10 +6,8 @@ use app\modules\models\Post;
 
 class PostForm extends Post
 {
-    public function rules()
+    public function rules(): array
     {
-        return [
-            [['status'], 'required'],
-        ];
+        return array_merge(parent::rules(), []);
     }
 }

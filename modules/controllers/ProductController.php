@@ -16,7 +16,6 @@ use yii\web\UploadedFile;
 use app\controllers\Controller;
 use app\modules\models\form\ProductUpdateForm;
 use app\modules\models\Product;
-use app\modules\models\form\ProductForm;
 use app\modules\models\form\ProductCreateForm;
 use app\modules\models\form\Image;
 
@@ -33,7 +32,7 @@ class ProductController extends Controller
             'class' => HttpBearerAuth::class,
             'except' => ['index'],
         ];
-        
+
         $behaviors['BlameableBehavior'] = [
             'class' => BlameableBehavior::class,
             'createdByAttribute' => 'user_id',
@@ -97,11 +96,10 @@ class ProductController extends Controller
     {
         $product = new ProductCreateForm();
         $product->load(Yii::$app->request->post());
-        $product->images = UploadedFile::getInstances($product, 'images');
-
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
+        $product->images = UploadedFile::getInstances($product, 'images');
         $product->user_id = Yii::$app->user->id;
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);

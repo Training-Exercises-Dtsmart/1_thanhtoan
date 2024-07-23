@@ -34,8 +34,7 @@ class UserController extends Controller
                 'change-password-forgot'
             ],
         ];
-
-
+        
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
