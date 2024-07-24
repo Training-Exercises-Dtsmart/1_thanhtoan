@@ -9,5 +9,8 @@ use \app\models\base\Order as BaseOrder;
  */
 class Order extends BaseOrder
 {
-
+    public function formName(): string
+    {
+        return '';
+    }
 }

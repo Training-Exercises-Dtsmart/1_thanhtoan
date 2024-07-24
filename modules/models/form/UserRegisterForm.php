@@ -8,20 +8,11 @@ use yii\db\Exception;
 
 class UserRegisterForm extends User
 {
-    public $repassword;
-
     public function rules(): array
     {
         return array_merge(parent::rules(), [
             ['password_hash', 'validatePasswordStrength'],
-            ['repassword', 'compare', 'compareAttribute' => 'password_hash'],
             ['email', 'email'],
-//            [
-//                'username',
-//                'unique',
-//                'targetClass' => '\app\models\User',
-//                'message' => 'This usernamee has already been taken.'
-//            ],
         ]);
     }
 

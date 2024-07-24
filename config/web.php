@@ -67,6 +67,12 @@ $config = [
             ],
         ],
 
+        'session' => [
+            'class' => 'yii\web\Session',
+            'name' => 'cart',
+            'timeout' => 3600,
+        ],
+
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [

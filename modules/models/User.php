@@ -11,8 +11,9 @@ class User extends BaseUser implements IdentityInterface
 {
     public function fields()
     {
-        // return array(parent::fields(), 'name', 'description', 'price');
-        return array_merge(parent::fields(), []);
+        $fields = parent::fields();
+        unset($fields['password_hash']);
+        return $fields;
     }
 
 
