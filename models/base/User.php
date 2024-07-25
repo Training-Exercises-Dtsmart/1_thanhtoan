@@ -26,6 +26,8 @@ use \app\models\query\UserQuery;
  * @property integer $status
  * @property integer $role
  * @property string $password_reset_token
+ * @property integer $allowance
+ * @property integer $allowance_updated_at
  * @property string $created_at
  * @property string $updated_at
  *
@@ -68,7 +70,7 @@ abstract class User extends \yii\db\ActiveRecord
         $parentRules = parent::rules();
         return ArrayHelper::merge($parentRules, [
             [['username', 'email', 'password_hash'], 'required'],
-            [['gender', 'is_verified', 'status', 'role'], 'integer'],
+            [['gender', 'is_verified', 'status', 'role', 'allowance', 'allowance_updated_at'], 'integer'],
             [['date_of_birth'], 'safe'],
             [['username'], 'string', 'max' => 50],
             [['email', 'full_name'], 'string', 'max' => 100],
@@ -101,6 +103,8 @@ abstract class User extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'password_reset_token' => 'Password Reset Token',
+            'allowance' => 'Allowance',
+            'allowance_updated_at' => 'Allowance Updated At',
         ]);
     }
 

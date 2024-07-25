@@ -4,10 +4,11 @@ namespace app\modules\models;
 
 use Yii;
 use yii\base\Exception;
+use yii\filters\RateLimitInterface;
 use yii\web\IdentityInterface;
 use app\models\User as BaseUser;
 
-class User extends BaseUser implements IdentityInterface
+class User extends BaseUser implements IdentityInterface, RateLimitInterface
 {
     public function fields()
     {
@@ -16,12 +17,31 @@ class User extends BaseUser implements IdentityInterface
         return $fields;
     }
 
+    public function getRateLimit($request, $action): array
+    {
+        return [30, 60]; // Limit 50 request in 60s
+    }
+
+    public function loadAllowance($request, $action): array
+    {
+        return [$this->allowance, $this->allowance_updated_at];
+    }
+
+    /**
+     * @throws \yii\db\Exception
+     */
+    public function saveAllowance($request, $action, $allowance, $timestamp)
+    {
+        $this->allowance = $allowance;
+        $this->allowance_updated_at = $timestamp;
+        $this->save();
+    }
+
 
     public static function findIdentity($id): ?User
     {
         return static::findOne($id);
     }
-
 
     public static function findIdentityByAccessToken($token, $type = null): ?User
     {

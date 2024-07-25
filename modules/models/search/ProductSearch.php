@@ -23,9 +23,6 @@ class ProductSearch extends Product
         $query = Product::find()->joinWith('category');
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            "pagination" => [
-                "pagesize" => 20,
-            ],
         ]);
         $this->load($params);
         if (!$this->validate()) {

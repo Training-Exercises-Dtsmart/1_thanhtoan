@@ -10,6 +10,7 @@ use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBasicAuth;
 use yii\filters\auth\HttpBearerAuth;
+use yii\filters\RateLimiter;
 use yii\rest\Serializer;
 use yii\web\UploadedFile;
 
@@ -30,20 +31,14 @@ class ProductController extends Controller
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['index'],
+            'except' => ['index', 'search'],
         ];
-
-        $behaviors['BlameableBehavior'] = [
-            'class' => BlameableBehavior::class,
-            'createdByAttribute' => 'user_id',
-        ];
-
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
                 [
                     'allow' => true,
-                    'actions' => ['index'],
+                    'actions' => ['index', 'search'],
                     'roles' => ['?']
                 ],
                 [
@@ -53,6 +48,12 @@ class ProductController extends Controller
                 ]
             ],
         ];
+
+        $behaviors['rateLimiter'] = [
+            'class' => RateLimiter::class,
+            'enableRateLimitHeaders' => true,
+        ];
+
         return $behaviors;
     }
 
@@ -98,8 +99,6 @@ class ProductController extends Controller
         $product->load(Yii::$app->request->post());
         $product->user_id = Yii::$app->user->id;
         $product->images = UploadedFile::getInstances($product, 'images');
-//        var_dump($product->images);
-//        die;
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
@@ -113,7 +112,6 @@ class ProductController extends Controller
             if ($imageFile->saveAs($filePath)) {
                 $imageModel->product_id = $product->id;
                 $imageModel->name = $imageFile->baseName . '.' . $imageFile->extension;
-//                $imageModel->path_url = $filePath;
                 $imageModel->save();
             } else {
                 return $this->json(false, [], "Failed to save image", HttpStatusCodes::BAD_REQUEST);
@@ -133,7 +131,6 @@ class ProductController extends Controller
         }
         $product->images = UploadedFile::getInstances($product, 'images');
         $product->load(Yii::$app->request->post());
-
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Invalid product data", HttpStatusCodes::BAD_REQUEST);
         }

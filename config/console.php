@@ -28,9 +28,9 @@ $config = [
         ],
         'db' => $db,
 
-//        'authManager' => [
-//            'class' => 'yii\rbac\DbManager',
-//        ],
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
 
 
         'mailer' => [

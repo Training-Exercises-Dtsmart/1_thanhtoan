@@ -16,6 +16,7 @@ use yii\db\Exception;
 use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
+use yii\filters\RateLimiter;
 use yii\web\UploadedFile;
 
 class UserController extends Controller
@@ -23,6 +24,7 @@ class UserController extends Controller
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
+
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
             'except' => [
@@ -63,6 +65,10 @@ class UserController extends Controller
             ],
         ];
 
+        $behaviors['rateLimiter'] = [
+            'class' => RateLimiter::class,
+            'enableRateLimitHeaders' => true,
+        ];
 
         return $behaviors;
     }
