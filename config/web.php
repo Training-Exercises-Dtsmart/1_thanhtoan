@@ -103,7 +103,8 @@ $config = [
 
         'weather' => [
             'class' => 'app\components\WeatherComponent',
-            'apiKey' => '10da2c1fa4fd45b196141841241007',
+            'apiKey' => env('WEATHER_API_KEY'),
+            'apiUrl' => env('WEATHER_URL'),
         ],
         'queue' => [
             'class' => \yii\queue\file\Queue::class,
