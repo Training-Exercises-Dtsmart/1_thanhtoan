@@ -96,18 +96,20 @@ class ProductController extends Controller
     {
         $product = new ProductCreateForm();
         $product->load(Yii::$app->request->post());
+        $product->user_id = Yii::$app->user->id;
+        $product->images = UploadedFile::getInstances($product, 'images');
+//        var_dump($product->images);
+//        die;
         if (!$product->validate()) {
             return $this->json(false, $product->getErrors(), "Validation errors", HttpStatusCodes::BAD_REQUEST);
         }
-        $product->images = UploadedFile::getInstances($product, 'images');
-        $product->user_id = Yii::$app->user->id;
         if (!$product->save()) {
             return $this->json(false, [], "Failed to save product", HttpStatusCodes::INTERNAL_SERVER_ERROR);
         }
         //upload multiple image
         foreach ($product->images as $imageFile) {
             $imageModel = new Image();
-            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
+            $filePath = Yii::getAlias('@app/web/assets/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
             if ($imageFile->saveAs($filePath)) {
                 $imageModel->product_id = $product->id;
                 $imageModel->name = $imageFile->baseName . '.' . $imageFile->extension;
@@ -142,7 +144,7 @@ class ProductController extends Controller
         //upload multiple image
         foreach ($product->images as $imageFile) {
             $imageModel = new Image();
-            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
+            $filePath = Yii::getAlias('@app/web/assets/uploads/products/') . $imageFile->baseName . '.' . $imageFile->extension;
             if ($imageFile->saveAs($filePath)) {
                 $imageModel->product_id = $product->id;
                 $imageModel->name = $imageFile->baseName . '.' . $imageFile->extension;
@@ -167,7 +169,7 @@ class ProductController extends Controller
         //delete existing images by product
         $images = Image::find()->where(["product_id" => $product_id])->all();
         foreach ($images as $image) {
-            $filePath = Yii::getAlias('@app/modules/uploads/products/') . $image->name;
+            $filePath = Yii::getAlias('@app/web/assets/uploads/products/') . $image->name;
             if (file_exists($filePath)) {
                 unlink($filePath);
             }

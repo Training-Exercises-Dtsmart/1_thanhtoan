@@ -58,7 +58,7 @@ class UserUpdateProfileForm extends User
         $user->full_name = $this->full_name;
         $user->date_of_birth = $this->date_of_birth;
         if ($this->profile_picture_file !== null) {
-            $uploadPath = Yii::getAlias('@app/modules/uploads/');
+            $uploadPath = Yii::getAlias('@app/web/assets/uploads/users/');
             $fileName = Yii::$app->security->generateRandomString() . '.' . $this->profile_picture_file->extension;
             $filePath = $uploadPath . $fileName;
             if ($this->profile_picture_file->saveAs($filePath)) {

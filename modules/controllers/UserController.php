@@ -34,7 +34,7 @@ class UserController extends Controller
                 'change-password-forgot'
             ],
         ];
-        
+
         $behaviors['access'] = [
             'class' => AccessControl::class,
             'rules' => [
@@ -134,8 +134,8 @@ class UserController extends Controller
     {
         $user = Yii::$app->user->identity;
         $updateForm = UserUpdateProfileForm::find()->where(['id' => $user->id])->one();
-        $updateForm->load(Yii::$app->request->post());
         $updateForm->profile_picture_file = UploadedFile::getInstance($updateForm, 'profile_picture_file');
+        $updateForm->load(Yii::$app->request->post());
         if (!$updateForm->validate()) {
             return $this->json(false, $updateForm->getErrors(), 'Validation errors', HttpStatusCodes::BAD_REQUEST);
         }
