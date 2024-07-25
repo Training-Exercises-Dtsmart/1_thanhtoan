@@ -2,6 +2,7 @@
 
 namespace app\modules\controllers;
 
+use app\modules\jobs\SendOrderConfirmationEmailJob;
 use app\modules\models\form\OrderForm;
 use app\modules\models\OrderItem;
 use app\modules\models\OrderPayment;
@@ -84,10 +85,14 @@ class OrderController extends Controller
                         HttpStatusCodes::INTERNAL_SERVER_ERROR);
                 }
             }
-
             $transaction->commit();
-            $orderForm->refresh();
-            return $this->json(true, $orderForm, "Checkout successful", HttpStatusCodes::OK);
+            $orderItems = OrderItem::find()->where(['order_id' => $orderForm->id])->all();
+            Yii::$app->queue->push(new SendOrderConfirmationEmailJob([
+                'orderDetails' => $orderForm->getOrderDetails(),
+                'email' => Yii::$app->user->identity->email,
+                'listItems' => $orderItems,
+            ]));
+            return $this->json(true, $orderForm, "Checkout successfully", HttpStatusCodes::OK);
         } catch (\Exception $e) {
             $transaction->rollBack();
             return $this->json(false, [], "Checkout failed: " . $e->getMessage(),

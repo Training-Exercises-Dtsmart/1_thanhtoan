@@ -3,6 +3,7 @@
 namespace app\modules\models\form;
 
 use app\modules\models\Order;
+use app\modules\models\OrderItem;
 
 class OrderForm extends Order
 {

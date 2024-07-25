@@ -17,5 +17,4 @@ class Order extends BaseOrder
             }
         ]);
     }
-
 }
