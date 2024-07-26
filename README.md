@@ -1,4 +1,4 @@
-
+![image](https://github.com/user-attachments/assets/a4ac035d-6290-4243-a820-702a734c133b)![image](https://github.com/user-attachments/assets/4f0fffea-f62d-433f-8856-5bcb25675cfe)
 ![image](https://github.com/user-attachments/assets/10074274-a81d-46e2-8122-76470d846592)
 
 
@@ -60,12 +60,12 @@
 
 - ### Schema database:
 
-![database_update](https://github.com/Training-Exercises-Dtsmart/1_thanhtoan/assets/125992542/7098afd3-f39d-4439-bf8e-3087553df2e6)
+![image](https://github.com/user-attachments/assets/14b37589-8e38-422e-b52a-f02b74655187)
+
 
 - ### Migrations:
 
-<img src="https://github.com/Training-Exercises-Dtsmart/1_thanhtoan/assets/125992542/43eeae15-65b7-43f8-b61e-9ec4a0c0835c">
-
+![image](https://github.com/user-attachments/assets/db5954fe-bd44-4f65-b7d9-7ecffcbc760b)
 
 
 
@@ -469,5 +469,126 @@ composer require --prefer-dist yiisoft/yii2-queue
 ![image](https://github.com/user-attachments/assets/6814464b-a565-40f7-a44d-64a31225908b)
 ![image](https://github.com/user-attachments/assets/9a3140b6-27ec-4d46-b21f-32e1ffa72635)
 
+
+
+
+
+
+
+
+
+
+
+
+-------
+<h1 align="center">**************** WEEK 3,4 ****************</h1>
+- ### Send account verification email upon successful login
+
+![image](https://github.com/user-attachments/assets/02c8a5fd-37df-4ff8-a5f1-50ca9b6f3ce4)
+
+![image](https://github.com/user-attachments/assets/997ca80d-5d1f-43ac-b63f-4c889dfb9982)
+
+![image](https://github.com/user-attachments/assets/effeec3c-472d-4e80-8565-e56f379aff1d)
+
+![image](https://github.com/user-attachments/assets/00711977-1b92-438b-880d-04149a6a43bc)
+
+
+![image](https://github.com/user-attachments/assets/82a17bee-d334-45a8-8595-05e4ff3960eb)
+
+![image](https://github.com/user-attachments/assets/a6476b78-9004-43ac-83f6-00b26201f5c3)
+
+ - #### Test verify fail
+
+![image](https://github.com/user-attachments/assets/5e6be1f3-400d-4d0f-9667-761f9ad8cba6)
+
+ - #### Test verify success
+
+![image](https://github.com/user-attachments/assets/639241f0-d525-4f98-a87a-de40fbd43f9e)
+
+![image](https://github.com/user-attachments/assets/1b166fa7-78ca-492e-9e53-59e3ef90c766)
+
+![image](https://github.com/user-attachments/assets/79e68baa-712e-449d-a09b-231a079d2e8c)
+
+
+- ### Forgot password, change password
+
+![image](https://github.com/user-attachments/assets/054461cc-23d1-4c6e-b075-dfa8b32816ad)
+
+![image](https://github.com/user-attachments/assets/809b8114-fa00-4ae2-9988-b09478c6f619)
+
+![image](https://github.com/user-attachments/assets/a703f480-4db5-4a21-bc6f-4700cbc4c562)
+
+ - #### Test Forgot password
+
+![image](https://github.com/user-attachments/assets/332cad5d-b93c-4908-b8c9-a7140e13b529)
+
+![image](https://github.com/user-attachments/assets/b6068db8-cd17-4a7f-a057-155995cb05fc)
+
+![image](https://github.com/user-attachments/assets/4ec1a11d-b51e-4d67-9087-e56563e1831e)
+
+![image](https://github.com/user-attachments/assets/5d27463e-dd89-4820-a6e2-2568fc21a50e)
+
+
+ - #### Test fail token
+
+![image](https://github.com/user-attachments/assets/07d601cd-ee9f-46c0-90be-981e3ef3561f)
+
+ - #### Validation error checking Checks the validity of the input
+
+![image](https://github.com/user-attachments/assets/f304c0c1-5dd3-4cf4-8b22-80eba9972013)
+
+![image](https://github.com/user-attachments/assets/0f73d413-df6a-482b-90c5-e53ef4030e2f)
+
+
+ - #### Test success
+
+![image](https://github.com/user-attachments/assets/7e692aa1-a672-4cd2-960f-a871f04634d5)
+
+
+
+- ### Checkout 
+
+![image](https://github.com/user-attachments/assets/26402896-cb57-4301-bd02-2a67ff0b2d6c)
+
+![image](https://github.com/user-attachments/assets/34557b95-729e-45a3-b617-1a18424ebc08)
+
+![image](https://github.com/user-attachments/assets/cae4f92f-80e8-48ba-8149-ff32adcdff79)
+
+![image](https://github.com/user-attachments/assets/9c6775e2-46a5-4b69-953d-ab2563549dfb)
+
+![image](https://github.com/user-attachments/assets/e4ac9d36-1077-482e-8a8a-730c9d8cd2e6)
+
+- ### Send order confirmation mail
+
+![image](https://github.com/user-attachments/assets/2bcc9e2f-4b88-4313-a7cb-ec5d7260c20b)
+
+![image](https://github.com/user-attachments/assets/93d1258e-866b-4c83-ac39-429c15095d57)
+
+![image](https://github.com/user-attachments/assets/39a60994-46e6-45c9-9918-07388ffaf0da)
+
+![image](https://github.com/user-attachments/assets/e5eff6ee-efa5-4231-a20f-8529173edacb)
+
+- ### Test checkout
+
+![image](https://github.com/user-attachments/assets/0c62e603-c1ef-4754-87d0-9c57d4174304)
+
+![image](https://github.com/user-attachments/assets/d89ca0db-4b1d-4847-8df3-3bed3ca0c905)
+
+![image](https://github.com/user-attachments/assets/d72dd15e-049a-4851-af1e-da2466dc70fa)
+
+- ### Rate limit request user 
+
+![image](https://github.com/user-attachments/assets/d3e177e9-ed2a-4865-963f-4378c492d991)
+
+![image](https://github.com/user-attachments/assets/2683590f-29f9-4187-9a0c-a7093379354a)
+
+![image](https://github.com/user-attachments/assets/bb8deaf5-25b1-4483-ad27-04bb7e98aa13)
+
+
+- ### Test request
+
+![image](https://github.com/user-attachments/assets/9e73ccfe-ca40-455c-b6d8-5f9467d6af47)
+
+![image](https://github.com/user-attachments/assets/ec9ccbc4-95d6-41f4-b091-772454297768)
 
 
