@@ -14,10 +14,7 @@ class SendVerificationEmailJob extends BaseObject implements JobInterface
 
     public function execute($queue)
     {
-        Yii::$app->mailer->compose(
-            ['html' => 'verificationEmail-html'],
-            ['user' => $this]
-        )
+        Yii::$app->mailer->compose()
             ->setFrom('thanhtoan28740@gmail.com')
             ->setTo($this->email)
             ->setSubject('Email Verification')

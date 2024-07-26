@@ -12,10 +12,13 @@ use yii\db\StaleObjectException;
 
 class CategoryController extends Controller
 {
-    public function actionIndex()
+    public function actionIndex(): array
     {
-        var_dump(2);
-        die;
+        $listCategory = Category::find()->all();
+        if (empty($listCategory)) {
+            return $this->json(false, [], "No category found", HttpStatusCodes::NOT_FOUND);
+        }
+        return $this->json(true, $listCategory, "Successfully", HttpStatusCodes::OK);
     }
 
     /**
@@ -31,18 +34,39 @@ class CategoryController extends Controller
             return $this->json(true, $category, 'Category created successfully', HttpStatusCodes::OK);
         } else {
             return $this->json(false, $category->getErrors(), 'Validation failed',
-                HttpStatusCodes::UNPROCESSABLE_ENTITY);
+                HttpStatusCodes::BAD_REQUEST);
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function actionUpdate($category_id): array
+    {
+        $category = Category::find()->where(['id' => $category_id])->one();
+        if (!$category) {
+            return $this->json(false, [], "Category not found", HttpStatusCodes::NOT_FOUND);
+        }
+        $category->load(Yii::$app->request->post());
+        if (!$category->validate()) {
+            return $this->json(false, ["error" => $category->getErrors()], "Validation failed",
+                HttpStatusCodes::BAD_REQUEST);
+        }
+        if (!$category->save()) {
+            return $this->json(false, $category->getErrors(), "Can't update category",
+                HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $category, "Category updated successfully", HttpStatusCodes::OK);
+    }
+
 
     /**
      * @throws \Throwable
      * @throws StaleObjectException
      */
-    public function actionDelete($categories_id): array
+    public function actionDelete($category_id): array
     {
-
-        $category = Category::find()->where(['id' => $categories_id])->one();
+        $category = Category::find()->where(['id' => $category_id])->one();
         if ($category === null) {
             return $this->json(false, [], 'Category not found', HttpStatusCodes::NOT_FOUND);
         }

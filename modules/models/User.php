@@ -14,6 +14,7 @@ class User extends BaseUser implements IdentityInterface, RateLimitInterface
     {
         $fields = parent::fields();
         unset($fields['password_hash']);
+        unset($fields['verification_token']);
         return $fields;
     }
 

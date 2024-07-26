@@ -47,6 +47,7 @@ class OrderController extends Controller
             $orderForm->total_amount = array_reduce($cart, function ($carry, $product) {
                 return $carry + ($product['price'] * $product['quantity']);
             }, 0);
+
             $orderForm->user_id = Yii::$app->user->id;
             $orderForm->order_code = uniqid('order_');
             $orderForm->load(Yii::$app->request->post());
@@ -86,11 +87,12 @@ class OrderController extends Controller
                         HttpStatusCodes::INTERNAL_SERVER_ERROR);
                 }
             }
+
             $transaction->commit();
             $orderItems = OrderItem::find()->where(['order_id' => $orderForm->id])->all();
             Yii::$app->queue->push(new SendOrderConfirmationEmailJob([
                 'orderDetails' => $orderForm,
-                'email' => Yii::$app->user->identity->email,
+                'email' => $orderForm->customer_email,
                 'listItems' => $orderItems,
             ]));
             return $this->json(true, $orderForm, "Checkout successfully", HttpStatusCodes::OK);

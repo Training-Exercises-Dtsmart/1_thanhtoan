@@ -122,7 +122,7 @@ class UserController extends Controller
         if (!$user->validate()) {
             return $this->json(false, $user->getErrors(), 'Validation errors',
                 HttpStatusCodes::BAD_REQUEST);
-        };
+        }
         if (!$user->register()) {
             return $this->json(false, $user->getErrors(), 'Register failed', HttpStatusCodes::BAD_REQUEST);
         }
@@ -151,10 +151,12 @@ class UserController extends Controller
         return $this->json(true, $updateForm, 'Updated successfully', HttpStatusCodes::OK);
     }
 
-    public function actionUpdateUser(): array
+    public function actionUpdateUser($user_id): array
     {
-        $user = Yii::$app->user->identity;
-        $updateForm = UserUpdateForm::find()->where(['id' => $user->id])->one();
+        $updateForm = UserUpdateForm::find()->where(['id' => $user_id])->one();
+        if (!$updateForm) {
+            return $this->json(false, [], 'User not found', HttpStatusCodes::NOT_FOUND);
+        }
         $updateForm->load(Yii::$app->request->post());
         $updateForm->profile_picture_file = UploadedFile::getInstance($updateForm, 'profile_picture_file');
         if (!$updateForm->validate()) {
