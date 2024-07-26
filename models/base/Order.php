@@ -18,7 +18,6 @@ use \app\models\query\OrderQuery;
  * @property double $total_amount
  * @property integer $status
  * @property string $shipping_address
- * @property string $billing_address
  * @property string $customer_name
  * @property string $customer_email
  * @property string $customer_phone
@@ -64,7 +63,7 @@ abstract class Order extends \yii\db\ActiveRecord
             [['user_id', 'order_code', 'total_amount', 'customer_name', 'customer_email', 'customer_phone'], 'required'],
             [['user_id', 'status'], 'integer'],
             [['total_amount'], 'number'],
-            [['shipping_address', 'billing_address'], 'string'],
+            [['shipping_address'], 'string'],
             [['order_code'], 'string', 'max' => 255],
             [['customer_name'], 'string', 'max' => 50],
             [['customer_email'], 'string', 'max' => 100],
@@ -86,7 +85,6 @@ abstract class Order extends \yii\db\ActiveRecord
             'total_amount' => 'Total Amount',
             'status' => 'Status',
             'shipping_address' => 'Shipping Address',
-            'billing_address' => 'Billing Address',
             'customer_name' => 'Customer Name',
             'customer_email' => 'Customer Email',
             'customer_phone' => 'Customer Phone',

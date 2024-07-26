@@ -6,6 +6,7 @@ namespace app\models\base;
 
 use Yii;
 use yii\helpers\ArrayHelper;
+use yii\behaviors\TimestampBehavior;
 use \app\models\query\OrderItemQuery;
 
 /**
@@ -16,6 +17,9 @@ use \app\models\query\OrderItemQuery;
  * @property integer $product_id
  * @property integer $quantity
  * @property double $price
+ * @property string $name
+ * @property string $created_at
+ * @property string $updated_at
  *
  * @property \app\models\Order $order
  * @property \app\models\Product $product
@@ -34,6 +38,20 @@ abstract class OrderItem extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['timestamp'] = [
+            'class' => TimestampBehavior::class,
+            'value' => (new \DateTime())->format('Y-m-d H:i:s'),
+                        ];
+        
+    return $behaviors;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function rules()
     {
         $parentRules = parent::rules();
@@ -41,6 +59,7 @@ abstract class OrderItem extends \yii\db\ActiveRecord
             [['order_id', 'product_id', 'quantity', 'price'], 'required'],
             [['order_id', 'product_id', 'quantity'], 'integer'],
             [['price'], 'number'],
+            [['name'], 'string', 'max' => 255],
             [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Order::class, 'targetAttribute' => ['order_id' => 'id']],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Product::class, 'targetAttribute' => ['product_id' => 'id']]
         ]);
@@ -57,6 +76,9 @@ abstract class OrderItem extends \yii\db\ActiveRecord
             'product_id' => 'Product ID',
             'quantity' => 'Quantity',
             'price' => 'Price',
+            'name' => 'Name',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
         ]);
     }
 

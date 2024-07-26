@@ -29,15 +29,24 @@ class SendOrderConfirmationEmailJob extends BaseObject implements JobInterface
         $shippingAddress = $orderDetails['shipping_address'];
         $totalAmount = $orderDetails['total_amount'];
         // Generate the HTML for order items
-        $itemsHtml = '<ul>';
+        $itemsHtml = '<table style="width: 50%; border-collapse: collapse; margin: 20px auto;">';
+        $itemsHtml .=
+            '<thead>
+            <tr>
+                <th style="border: 1px solid #dddddd; text-align: left; padding: 8px; background-color: #f2f2f2;">Name</th>
+                <th style="border: 1px solid #dddddd; text-align: left; padding: 8px; background-color: #f2f2f2;">Quantity</th>
+                <th style="border: 1px solid #dddddd; text-align: left; padding: 8px; background-color: #f2f2f2;">Price</th>
+            </tr>
+        </thead><tbody>';
         foreach ($listItems as $item) {
-            $itemsHtml .= '<li>';
-            $itemsHtml .= 'Product ID: ' . $item['product_id'];
-            $itemsHtml .= ', Quantity: ' . $item['quantity'];
-            $itemsHtml .= ', Price: ' . number_format($item['price'], 2);
-            $itemsHtml .= '</li>';
+            $itemsHtml .= '<tr style="background-color: #f9f9f9;">';
+            $itemsHtml .= '<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">' . $item['name'] . '</td>';
+            $itemsHtml .= '<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">' . $item['quantity'] . '</td>';
+            $itemsHtml .= '<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">' . number_format($item['price'],
+                    2) . '</td>';
+            $itemsHtml .= '</tr>';
         }
-        $itemsHtml .= '</ul>';
+        $itemsHtml .= '</tbody></table>';
         // Create content HTML
         return "
             <html>

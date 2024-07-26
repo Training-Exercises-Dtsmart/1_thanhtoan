@@ -61,6 +61,7 @@ class OrderController extends Controller
                 $orderItem = new OrderItem();
                 $orderItem->order_id = $orderForm->id;
                 $orderItem->product_id = $product['id'];
+                $orderItem->name = $product['name'];
                 $orderItem->quantity = $product['quantity'];
                 $orderItem->price = $product['price'];
                 if (!$orderItem->save()) {
@@ -88,7 +89,7 @@ class OrderController extends Controller
             $transaction->commit();
             $orderItems = OrderItem::find()->where(['order_id' => $orderForm->id])->all();
             Yii::$app->queue->push(new SendOrderConfirmationEmailJob([
-                'orderDetails' => $orderForm->getOrderDetails(),
+                'orderDetails' => $orderForm,
                 'email' => Yii::$app->user->identity->email,
                 'listItems' => $orderItems,
             ]));
