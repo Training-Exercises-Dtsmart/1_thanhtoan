@@ -26,8 +26,6 @@ class UserRegisterForm extends User
         $this->status = 0;
         $this->setPassword($this->password_hash);
         $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
-//        var_dump($this->verification_token);
-//        die;
         if ($this->save()) {
             $this->sendVerificationEmail($this);
             return $this;

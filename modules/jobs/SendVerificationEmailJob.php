@@ -21,5 +21,4 @@ class SendVerificationEmailJob extends BaseObject implements JobInterface
             ->setHtmlBody("Hello {$this->username},<br>Follow the link below to verify your email:<br><a href=\"{$this->verificationLink}\">{$this->verificationLink}</a>")
             ->send();
     }
-
 }
