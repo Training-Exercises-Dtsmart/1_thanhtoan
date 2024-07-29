@@ -116,6 +116,12 @@ $config = [
             'mutex' => \yii\mutex\MysqlMutex::class,
         ],
 
+        'cron' => [
+            'class' => '@vendor\sharkom\yii2-cron\modules',
+            'params' => [
+                'sendNotifications' => true,
+            ]
+        ],
     ],
     'params' => $params,
 ];

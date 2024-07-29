@@ -22,7 +22,7 @@ $config = [
             'targets' => [
                 [
                     'class' => 'yii\log\FileTarget',
-                    'levels' => ['error', 'warning'],
+                    'levels' => ['error', 'warning', 'info'],
                 ],
             ],
         ],
@@ -86,6 +86,12 @@ $config = [
             'modelQueryNamespace' => 'app\models\query',
             'modelBaseClass' => yii\db\ActiveRecord::class,
             'modelQueryBaseClass' => yii\db\ActiveQuery::class
+        ],
+        'migrate' => [
+            'class' => 'yii\console\controllers\MigrateController',
+            'migrationPath' => [
+                '@vendor/sharkom/yii2-cron/migrations', // Đường dẫn tuyệt đối đến thư mục migrations
+            ],
         ],
         //        'batch' => [
         //            'class' => 'schmunk42\giiant\commands\BatchController',
