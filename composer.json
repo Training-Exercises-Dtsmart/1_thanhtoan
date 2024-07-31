@@ -27,7 +27,8 @@
     "yiisoft/yii2-swiftmailer": "^2.0",
     "yiisoft/yii2-queue": "^2.3",
     "yiithings/yii2-dotenv": "*",
-    "sharkom/yii2-cron": "1.0.5"
+    "sharkom/yii2-cron": "1.0.5",
+    "php-imap/php-imap": "^5.0"
   },
   "require-dev": {
     "yiisoft/yii2-debug": "~2.1.0",

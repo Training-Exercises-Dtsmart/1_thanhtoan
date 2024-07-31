@@ -55,6 +55,18 @@ $config = [
             'mutex' => \yii\mutex\MysqlMutex::class,
         ],
 
+//        'imap' => [
+//            'class' => 'roopz\imap\Imap',
+//            'connection' => [
+//                'imapPath' => '{imap.gmail.com:993/imap/ssl}INBOX',
+//                'imapLogin' => 'thanhtoan28740@gmail.com',
+//                'imapPassword' => 'kcsh vptx hmim sbpn',
+//                'serverEncoding' => 'utf-8',
+//                'attachmentsDir' => __DIR__ . '/../attachments',
+//                'decodeMimeStr' => true
+//            ]
+//        ],
+
     ],
     'params' => $params,
     /*

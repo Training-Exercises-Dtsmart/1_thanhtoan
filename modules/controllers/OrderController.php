@@ -3,6 +3,9 @@
 namespace app\modules\controllers;
 
 use app\modules\models\Order;
+use PhpImap\Exceptions\ConnectionException;
+use PhpImap\Exceptions\InvalidParameterException;
+use PhpImap\Mailbox;
 use Yii;
 use app\modules\jobs\SendOrderConfirmationEmailJob;
 use app\modules\models\form\OrderForm;
@@ -10,6 +13,7 @@ use app\modules\models\OrderItem;
 use app\modules\models\OrderPayment;
 use common\helpers\HttpStatusCodes;
 use app\Controllers\Controller;
+use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
@@ -23,7 +27,7 @@ class OrderController extends Controller
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['order', 'callback'],
+            'except' => ['order', 'callback', 'generate-qr', 'check-email', 'check-balance'],
         ];
 
         $behaviors['access'] = [
@@ -36,7 +40,7 @@ class OrderController extends Controller
                 ],
                 [
                     'allow' => true,
-                    'actions' => ['order', 'callback'],
+                    'actions' => ['order', 'callback', 'generate-qr', 'check-email', 'check-balance'],
                     'roles' => ['?'],
                 ],
             ]
@@ -86,6 +90,7 @@ class OrderController extends Controller
                 return $this->json(false, [], "No payment methods provided", HttpStatusCodes::BAD_REQUEST);
             }
 
+            $dataPayment = [];
             foreach ($paymentMethods as $paymentMethod) {
                 if ($paymentMethod['method'] == 'zalopay') {
                     // ZaloPay payment integration
@@ -95,7 +100,7 @@ class OrderController extends Controller
                         "key1" => "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL",
                         "key2" => "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz",
                         "endpoint" => "https://sb-openapi.zalopay.vn/v2/create",
-                        "callback_url" => "http://localhost:8080/api/order/callback"
+                        "callback_url" => "https://1efc-115-78-4-37.ngrok-free.app/api/order/callback"
                     ];
                     $embeddata = '{}';
                     $items = '[]';
@@ -137,6 +142,13 @@ class OrderController extends Controller
                             HttpStatusCodes::INTERNAL_SERVER_ERROR);
                     }
                 }
+
+                // Scan QR code payment integration
+                if ($paymentMethod['method'] == 'scanqr') {
+                    $qrcode = $this->actionGenerateQr($paymentMethod);
+                    $dataPayment = $qrcode;
+                }
+
                 //if payment is not zalopay
                 $orderPayment = new OrderPayment();
                 $orderPayment->order_id = $orderForm->id;
@@ -157,7 +169,7 @@ class OrderController extends Controller
                 'email' => $orderForm->customer_email,
                 'listItems' => $orderItems,
             ]));
-            return $this->json(true, ['order' => $orderForm, 'zalopay_response' => $responseBody],
+            return $this->json(true, ['order' => $orderForm, 'dataPayment' => $dataPayment],
                 "Checkout successfully", HttpStatusCodes::OK);
         } catch (\Exception $e) {
             $transaction->rollBack();
@@ -172,7 +184,7 @@ class OrderController extends Controller
      */
     public function actionCallback(): array
     {
-        $key2 = "eG4r0GcoNtRGbO8"; // Thay thế bằng key2 của bạn
+        $key2 = "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz"; // Thay thế bằng key2 của bạn
         $postdata = file_get_contents('php://input');
         $postdatajson = Json::decode($postdata);
         $mac = hash_hmac("sha256", $postdatajson["data"], $key2);
@@ -206,4 +218,98 @@ class OrderController extends Controller
         }
         return $result;
     }
+
+    /**
+     * @throws \yii\httpclient\Exception
+     * @throws InvalidConfigException
+     */
+    public function actionGenerateQr($infoQR)
+    {
+//        $json = file_get_contents('php://input');
+//        $data = json::decode($json, true);
+        $data = $infoQR;
+        if (empty($data['accountNo']) || empty($data['accountName']) || empty($data['acqId']) || empty($data['amount']) || empty($data['addInfo'])) {
+            return $this->asJson([
+                'code' => '01',
+                'desc' => 'Thiếu dữ liệu đầu vào'
+            ]);
+        }
+        $client = new Client();
+        $response = $client->createRequest()
+            ->setMethod('POST')
+            ->setUrl('https://api.vietqr.io/v2/generate')
+            ->setHeaders([
+                'x-client-id' => 'ddb4e697-d658-44fb-9258-6737ff84070e',
+                'x-api-key' => '48e88cd5-7617-4569-8ae6-aa4b436be36e',
+                'Content-Type' => 'application/json',
+            ])
+            ->setContent(Json::encode([
+                'accountNo' => $data['accountNo'],
+                'accountName' => $data['accountName'],
+                'acqId' => $data['acqId'],
+                'amount' => $data['amount'],
+                'addInfo' => $data['addInfo'],
+                'template' => 'compact'
+            ]))
+            ->send();
+
+        if ($response->isOk) {
+            return $response->data;
+        }
+        return null;
+    }
+
+
+    /**
+     * @throws InvalidParameterException
+     */
+    public function actionCheckBalance(): \yii\web\Response
+    {
+        $mailbox = new Mailbox(
+            '{imap.gmail.com:993/imap/ssl}INBOX',
+            'thanhtoan28740@gmail.com',
+            'kcsh vptx hmim sbpn',
+            __DIR__ . '/../../attachments',
+            'UTF-8',
+        );
+        try {
+            $mailsIds = $mailbox->sortMails(1, true, 'FROM "mailalert@acb.com.vn"');
+        } catch (ConnectionException $ex) {
+            return $this->asJson([
+                'code' => '01',
+                'desc' => 'Kết nối IMAP thất bại: ' . $ex->getMessage()
+            ]);
+        } catch (Exception $ex) {
+            return $this->asJson([
+                'code' => '02',
+                'desc' => 'Lỗi xảy ra: ' . $ex->getMessage()
+            ]);
+        }
+
+        foreach ($mailsIds as $mailId) {
+            // read email
+            $email = $mailbox->getMail($mailId);
+            $body = $email->textHtml;
+//            Strip HTML tags and decode special characters
+            $plainBody = strip_tags($body);
+            $plainBody = html_entity_decode($plainBody);
+            if (preg_match('/SMART172005DT/', $plainBody)) {
+                return $this->asJson([
+                    'code' => '00',
+                    'desc' => 'Found matching email',
+                    'email' => [
+                        'subject' => $email->subject,
+                        'from' => $email->fromAddress,
+                        'date' => $email->date,
+                        'body' => $plainBody,
+                    ]
+                ]);
+            }
+        }
+        return $this->asJson([
+            'code' => '03',
+            'desc' => 'No matching email found'
+        ]);
+    }
+
 }

@@ -30,6 +30,9 @@ class __Application
      * @var mixed|object|null
      */
     public $queue;
+    /**
+     * @var mixed|object|null
+     */
 }
 
 /**
