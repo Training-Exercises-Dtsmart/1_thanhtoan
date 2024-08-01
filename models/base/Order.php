@@ -21,6 +21,7 @@ use \app\models\query\OrderQuery;
  * @property string $customer_name
  * @property string $customer_email
  * @property string $customer_phone
+ * @property string $app_trans_id
  * @property string $created_at
  * @property string $updated_at
  *
@@ -64,7 +65,7 @@ abstract class Order extends \yii\db\ActiveRecord
             [['user_id', 'status'], 'integer'],
             [['total_amount'], 'number'],
             [['shipping_address'], 'string'],
-            [['order_code'], 'string', 'max' => 255],
+            [['order_code', 'app_trans_id'], 'string', 'max' => 255],
             [['customer_name'], 'string', 'max' => 50],
             [['customer_email'], 'string', 'max' => 100],
             [['customer_phone'], 'string', 'max' => 20],
@@ -90,6 +91,7 @@ abstract class Order extends \yii\db\ActiveRecord
             'customer_phone' => 'Customer Phone',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+            'app_trans_id' => 'App Trans ID',
         ]);
     }
 
