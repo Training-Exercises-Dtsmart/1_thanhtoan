@@ -30,7 +30,16 @@ class OrderController extends Controller
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
-            'except' => ['order', 'callback', 'generate-qr', 'check-email', 'check-balance', 'zalo-pay-status'],
+            'except' => [
+                'order',
+                'callback',
+                'generate-qr',
+                'check-email',
+                'check-balance',
+                'query-status-order-zalopay',
+                'refund-zalopay',
+                'query-refund-status-zalopay'
+            ],
         ];
 
         $behaviors['access'] = [
@@ -49,7 +58,9 @@ class OrderController extends Controller
                         'generate-qr',
                         'check-email',
                         'check-balance',
-                        'zalo-pay-status'
+                        'query-status-order-zalopay',
+                        'refund-zalopay',
+                        'query-refund-status-zalopay'
                     ],
                     'roles' => ['?'],
                 ],
@@ -103,7 +114,7 @@ class OrderController extends Controller
             $dataPayment = [];
             foreach ($paymentMethods as $paymentMethod) {
                 if ($paymentMethod['method'] == 'zalopay') {
-                    $dataPayment = $this->actionPaymentZalopay($paymentMethod, $orderForm);
+                    $dataPayment = Yii::$app->zalopay->createOrder($paymentMethod, $orderForm);
                     break;
                 }
 
@@ -118,7 +129,7 @@ class OrderController extends Controller
                 $orderPayment->payment_method = $paymentMethod['method'];
                 $orderPayment->amount = $paymentMethod['amount'];
                 $orderPayment->transaction_id = uniqid('txn_');
-                $orderPayment->status = $orderPayment::PENDING;
+                $orderPayment->status = OrderPayment::UNPAID;
                 if (!$orderPayment->save()) {
                     return $this->json(false, $orderPayment->getErrors(), "Order payment creation failed",
                         HttpStatusCodes::INTERNAL_SERVER_ERROR);
@@ -141,78 +152,57 @@ class OrderController extends Controller
         }
     }
 
-
-    /**
-     * @throws Exception
-     */
-    public function actionCallback(): array
+    public function actionCallback()
     {
-        $key2 = env('KEY2_ZALOPAY'); // Thay thế bằng key2 của bạn
         $postdata = file_get_contents('php://input');
-        $postdatajson = Json::decode($postdata);
-        $mac = hash_hmac("sha256", $postdatajson["data"], $key2);
-        $requestmac = $postdatajson["mac"];
-        $result = [];
-        if (strcmp($requestmac, $mac) != 0) {
-            //callback invalid
-            $result["return_code"] = -1;
-            $result["return_message"] = "mac not equal";
-        } else {
-            //pyament success
-            //merchant update status order
-            $datajson = Json::decode($postdatajson["data"]);
-            $appTransId = $datajson["app_trans_id"];
-            $zpTransId = $datajson["zp_trans_id"];
-
-            // update status order
-            $order = Order::findOne(['app_trans_id' => $appTransId]);
-            if ($order) {
-                $order->status = $order::PAID;
-                $order->save();
-                // update status order_payment
-                $orderPayment = OrderPayment::find()->where(['order_id' => $order->id])->andWhere(['payment_method' => "zalopay"])->one();
-                if ($orderPayment) {
-                    $orderPayment->status = OrderPayment::PAID;
-                    $orderPayment->save();
-                }
-            }
-            $result["return_code"] = 1;
-            $result["return_message"] = "success";
-        }
-        // Kiểm tra trạng thái giao dịch nếu chưa thành công
-        if ($result["return_code"] != 1) {
-            $statusResponse = $this->queryZaloPayStatus($datajson["app_trans_id"]);
-
-            if ($statusResponse['return_code'] == 1) {
-                // Giao dịch thành công
-                $order = Order::findOne(['app_trans_id' => $appTransId]);
-                if ($order) {
-                    $order->status = $order::PAID;
-                    $order->save();
-                    $orderPayment = OrderPayment::find()->where(['order_id' => $order->id])->andWhere(['payment_method' => "zalopay"])->one();
-                    if ($orderPayment) {
-                        $orderPayment->status = OrderPayment::PAID;
-                        $orderPayment->save();
-                    }
-                }
-                $result["return_code"] = 1;
-                $result["return_message"] = "success";
-            } else {
-                if ($statusResponse['return_code'] == 3) {
-                    // Giao dịch đang xử lý hoặc chưa thanh toán
-                    $result["return_code"] = 3;
-                    $result["return_message"] = "Transaction is processing or not paid yet";
-                } else {
-                    // Giao dịch thất bại
-                    $result["return_code"] = 2;
-                    $result["return_message"] = "Transaction failed";
-                }
-            }
-        }
-
-
+        $result = Yii::$app->zalopay->handleCallBack($postdata);
         return $result;
     }
+
+    public function actionQueryStatusOrderZalopay($app_trans_id): array
+    {
+        $order = Order::find()->where(['app_trans_id' => $app_trans_id])->one();
+        if (!$order) {
+            return $this->json(false, [], 'Order not found', HttpStatusCodes::NOT_FOUND);
+        }
+        $queryOrder = Yii::$app->zalopay->queryStatusOrder($order->app_trans_id);
+        if (!$queryOrder) {
+            return $this->json(false, [], 'Failed query status order', HttpStatusCodes::NOT_FOUND);
+        }
+        return $this->json(true, $queryOrder, 'Query status order', HttpStatusCodes::OK);
+    }
+
+    public function actionRefundZalopay($zp_trans_id): array
+    {
+        $order = Order::find()->where(['zp_trans_id' => $zp_trans_id])->one();
+        if (!$order) {
+            return $this->json(false, [], 'Order not found', 404);
+        }
+        $order_payment = OrderPayment::find()->where(['order_id' => $order->id])->andWhere(['payment_method' => "zalopay"])->one();
+        if (!$order_payment) {
+            return $this->json(false, [], 'Order payment not found', HttpStatusCodes::NOT_FOUND);
+        }
+        $response = Yii::$app->zalopay->refundOrder($order->zp_trans_id, $order_payment->amount);
+        if (!$response) {
+            return $this->json(false, [], 'Refund fail status order', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $response, 'Refund status order', HttpStatusCodes::OK);
+    }
+
+
+    public function actionQueryRefundStatusZalopay($m_refund_id): array
+    {
+        $orderPayment = OrderPayment::find()->where(['m_refund_id' => $m_refund_id])->one();
+        if (!$orderPayment) {
+            return $this->json(false, [], 'Order payment not found', 404);
+        }
+        $response = Yii::$app->zalopay->queryStatusRefund($m_refund_id);
+        if (!$response) {
+            return $this->json(false, [], 'Query status refund fail', HttpStatusCodes::INTERNAL_SERVER_ERROR);
+        }
+        return $this->json(true, $response, 'Query Refund status success', HttpStatusCodes::OK);
+    }
+
 
     /**
      * @throws \yii\httpclient\Exception
@@ -220,8 +210,6 @@ class OrderController extends Controller
      */
     public function actionGenerateQr($infoQR, $order_code)
     {
-//        $json = file_get_contents('php://input');
-//        $data = json::decode($json, true);
         $data = $infoQR;
         if (empty($data['accountNo']) || empty($data['accountName']) || empty($data['acqId']) || empty($data['amount']) || empty($data['addInfo'])) {
             return $this->asJson([
@@ -232,10 +220,10 @@ class OrderController extends Controller
         $client = new Client();
         $response = $client->createRequest()
             ->setMethod('POST')
-            ->setUrl('https://api.vietqr.io/v2/generate')
+            ->setUrl(env('VIETQR_ENDPOINT_GENERATE'))
             ->setHeaders([
-                'x-client-id' => 'ddb4e697-d658-44fb-9258-6737ff84070e',
-                'x-api-key' => '48e88cd5-7617-4569-8ae6-aa4b436be36e',
+                'x-client-id' => env('VIETQR_CLIENT_ID'),
+                'x-api-key' => env('VIETQR_API_KEY'),
                 'Content-Type' => 'application/json',
             ])
             ->setContent(Json::encode([
@@ -247,7 +235,6 @@ class OrderController extends Controller
                 'template' => 'compact'
             ]))
             ->send();
-
         if ($response->isOk) {
             return $response->data;
         }
@@ -258,6 +245,7 @@ class OrderController extends Controller
     /**
      * @throws InvalidParameterException
      * @throws Exception
+     * @throws \Exception
      */
     public function actionCheckBalance(): array
     {
@@ -274,10 +262,12 @@ class OrderController extends Controller
             'UTF-8',
         );
         try {
-//            date_default_timezone_set('Asia/Ho_Chi_Minh');
-            $currentTime = date('d-M-Y');
-            $mailsIds = $mailbox->sortMails(1, true,
-                'FROM "mailalert@acb.com.vn" SINCE "' . $currentTime . '"');
+            date_default_timezone_set('Asia/Ho_Chi_Minh');
+            $timeMinus10Minutes = new DateTime('-10 minutes');
+            // Reformat the time in IMAP format
+            $since = $timeMinus10Minutes->format('d-M-Y');
+            $mailsIds = $mailbox->sortMails(1, true, 'FROM "mailalert@acb.com.vn" SINCE "' . $since . '"');
+
         } catch (ConnectionException $ex) {
             return $this->json(false, $ex->getMessage(), 'Connect IMAP error', HttpStatusCodes::INTERNAL_SERVER_ERROR);
         } catch (Exception $ex) {
@@ -287,26 +277,31 @@ class OrderController extends Controller
         foreach ($mailsIds as $mailId) {
             // read email
             $email = $mailbox->getMail($mailId);
-            $body = $email->textHtml;
-//            Strip HTML tags and decode special characters
-            $plainBody = strip_tags($body);
-            $plainBody = html_entity_decode($plainBody);
+            //get email send date and compare
+            $emailDate = new DateTime($email->date);
+            if ($emailDate >= $timeMinus10Minutes) {
+                $body = $email->textHtml;
+                //Strip HTML tags and decode special characters
+                $plainBody = strip_tags($body);
+                $plainBody = html_entity_decode($plainBody);
 
-            preg_match('/tài khoản\s*(\d+)/i', $plainBody, $account);
-            preg_match('/Giao dịch mới nhất:(Ghi nợ|Ghi có)\s*([+-]?[\d,]+\.\d+\s*VND)/i', $plainBody,
-                $moneyContent);
-            preg_match('/Nội dung giao dịch:\s*(.*?)[.]/', $plainBody, $emailOrderCode[1]);
-            if (preg_match('/' . $orderCode . '/', $emailOrderCode[1][0])) {
-                //change status order and order_payment
-                $this->actionUpdateOrderStatus($order);
-                return $this->json(true, [
-                    'Money transfer content' => [
-                        'Beneficiary account number' => $account[1],
-                        'Money' => $moneyContent[2],
-                        'Content' => $emailOrderCode[1][0],
-                        'date' => $email->date,
-                    ]
-                ], 'Email found matching order', HttpStatusCodes::OK);
+                preg_match('/tài khoản\s*(\d+)/i', $plainBody, $account);
+                preg_match('/Giao dịch mới nhất:(Ghi nợ|Ghi có)\s*([+-]?[\d,]+\.\d+\s*VND)/i', $plainBody,
+                    $moneyContent);
+                preg_match('/Nội dung giao dịch:\s*(.*?)[.]/', $plainBody, $emailOrderCode[1]);
+
+                if (preg_match('/' . $orderCode . '/i', $emailOrderCode[1][0])) {
+                    //change status order and order_payment
+                    $this->actionUpdateOrderStatus($order);
+                    return $this->json(true, [
+                        'Money transfer content' => [
+                            'Beneficiary account number' => $account[1],
+                            'Money' => $moneyContent[2],
+                            'Content' => $emailOrderCode[1][0],
+                            'date' => $email->date,
+                        ]
+                    ], 'Email found matching order', HttpStatusCodes::OK);
+                }
             }
         }
         return $this->json(false, [], 'No matching email found', HttpStatusCodes::NOT_FOUND);
@@ -317,97 +312,13 @@ class OrderController extends Controller
      */
     private function actionUpdateOrderStatus($order)
     {
-        $order->status = Order::PAID;
+        $order->status = Order::COMPLETED;
         $order->save();
 
         $orderPayment = OrderPayment::find()->where(['order_id' => $order->id])->one();
         if ($orderPayment) {
-            $orderPayment->status = orderPayment::PAID;
+            $orderPayment->status = OrderPayment::PAIED;
             $orderPayment->save();
         }
     }
-
-    public function actionPaymentZalopay($paymentMethod, $orderForm): array
-    {
-
-//        if ($paymentMethod['method'] == 'zalopay') {
-        // ZaloPay payment integration
-        $client = new Client();
-        $config = [
-            "app_id" => 2553,
-            "key1" => env('KEY1_ZALOPAY'),
-            "key2" => env('KEY2_ZALOPAY'),
-            "endpoint" => env('ENDPOINT_ZALOPAY') . 'create',
-            "callback_url" => "https://2769-115-78-4-37.ngrok-free.app/api/order/callback"
-        ];
-        $embeddata = '{}';
-        $items = '[]';
-        $transID = rand(0, 1000000);
-        $order = [
-            "app_id" => $config["app_id"],
-            "app_time" => round(microtime(true) * 1000),
-            // miliseconds
-            "app_trans_id" => date("ymd") . "_" . $transID,
-            // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
-            "app_user" => Yii::$app->user->identity->username,
-            "item" => $items,
-            "embed_data" => $embeddata,
-            "amount" => $paymentMethod['amount'],
-            "description" => "Dtsmart - Payment for the order #" . $orderForm->order_code,
-            "bank_code" => "zalopayapp",
-            "callback_url" => $config["callback_url"]
-        ];
-        $data = $order["app_id"] . "|" . $order["app_trans_id"] . "|" . $order["app_user"] . "|" . $order["amount"]
-            . "|" . $order["app_time"] . "|" . $order["embed_data"] . "|" . $order["item"];
-
-        $order["mac"] = hash_hmac("sha256", $data, $config["key1"]);
-        $response = $client->post('https://sb-openapi.zalopay.vn/v2/create', $order)->send();
-        $responseBody = $response->data;
-
-        $orderForm->app_trans_id = $order['app_trans_id'];
-        $orderForm->save();
-        if ($responseBody['return_code'] != 1) {
-            throw new \Exception('ZaloPay API error: ' . $responseBody['return_message']);
-        }
-
-        // Save the order payment
-        $orderPayment = new OrderPayment();
-        $orderPayment->order_id = $orderForm->id;
-        $orderPayment->payment_method = $paymentMethod['method'];
-        $orderPayment->amount = $paymentMethod['amount'];
-        $orderPayment->transaction_id = $responseBody['zp_trans_token'];
-        $orderPayment->status = $orderPayment::PENDING;
-        if (!$orderPayment->save()) {
-            return $this->json(false, $orderPayment->getErrors(), "Order payment creation failed",
-                HttpStatusCodes::INTERNAL_SERVER_ERROR);
-        }
-        return $responseBody;
-    }
-
-    public function queryZaloPayStatus($appTransId)
-    {
-        $client = new Client();
-        $config = [
-            "app_id" => 2553,
-            "key1" => env('KEY1_ZALOPAY'),
-            "key2" => env('KEY2_ZALOPAY'),
-            "endpoint" => env('ENDPOINT_ZALOPAY') . 'query'
-        ];
-
-        $data = $config["app_id"] . "|" . $appTransId . "|" . $config["key1"]; // app_id|app_trans_id|key1
-        $params = [
-            "app_id" => $config["app_id"],
-            "app_trans_id" => $appTransId,
-            "mac" => hash_hmac("sha256", $data, $config["key1"])
-        ];
-
-        $response = $client->post($config["endpoint"], $params)->send();
-        if (!$response->isOk) {
-            throw new \Exception('ZaloPay API error: ' . $response->content);
-        }
-
-        return $response->data;
-    }
-
-    
 }

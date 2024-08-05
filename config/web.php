@@ -106,6 +106,15 @@ $config = [
             'apiKey' => env('WEATHER_API_KEY'),
             'apiUrl' => env('WEATHER_URL'),
         ],
+
+        'zalopay' => [
+            'class' => 'app\components\ZalopayComponent',
+            'key1' => env('KEY1_ZALOPAY'),
+            'key2' => env('KEY2_ZALOPAY'),
+            'endpoint' => env('ENDPOINT_ZALOPAY'),
+            'appId' => env('ZALOPAY_APP_ID'),
+        ],
+
         'queue' => [
 //            'class' => \yii\queue\file\Queue::class,
 //            'path' => '@runtime/queue',

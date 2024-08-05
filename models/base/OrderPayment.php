@@ -18,6 +18,7 @@ use \app\models\query\OrderPaymentQuery;
  * @property double $amount
  * @property string $transaction_id
  * @property integer $status
+ * @property string $m_refund_id
  * @property string $created_at
  * @property string $updated_at
  *
@@ -60,6 +61,7 @@ abstract class OrderPayment extends \yii\db\ActiveRecord
             [['amount'], 'number'],
             [['payment_method'], 'string', 'max' => 50],
             [['transaction_id'], 'string', 'max' => 100],
+            [['m_refund_id'], 'string', 'max' => 255],
             [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => \app\models\Order::class, 'targetAttribute' => ['order_id' => 'id']]
         ]);
     }
@@ -78,6 +80,7 @@ abstract class OrderPayment extends \yii\db\ActiveRecord
             'status' => 'Status',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+            'm_refund_id' => 'M Refund ID',
         ]);
     }
 

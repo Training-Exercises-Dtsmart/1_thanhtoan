@@ -8,8 +8,9 @@ class Order extends BaseOrder
 {
     const PENDING = 0;
     const PAID = 1;
-    const FAILED = 2;
-    const CANCELLED = 3;
+    const DELIVERY = 2;
+    const COMPLETED = 3;
+    const CANCELLED = 4;
 
     public function fields()
     {
