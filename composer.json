@@ -28,7 +28,8 @@
     "yiisoft/yii2-queue": "^2.3",
     "yiithings/yii2-dotenv": "*",
     "sharkom/yii2-cron": "1.0.5",
-    "php-imap/php-imap": "^5.0"
+    "php-imap/php-imap": "^5.0",
+    "ext-bcmath": "*"
   },
   "require-dev": {
     "yiisoft/yii2-debug": "~2.1.0",
@@ -41,7 +42,10 @@
     "codeception/module-filesystem": "^3.0 || ^2.0 || ^1.1",
     "codeception/verify": "^3.0 || ^2.2",
     "symfony/browser-kit": "^6.0 || >=2.7 <=4.2.4",
-    "schmunk42/yii2-giiant": "^1.0"
+    "schmunk42/yii2-giiant": "^1.0",
+    "codeception/module-rest": "^3.4",
+    "codeception/module-phpbrowser": "^3.0",
+    "codeception/module-db": "^3.1"
   },
   "config": {
     "allow-plugins": {

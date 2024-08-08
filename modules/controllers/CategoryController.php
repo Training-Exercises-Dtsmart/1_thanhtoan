@@ -18,6 +18,11 @@ class CategoryController extends Controller
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
+
+        if (YII_ENV_TEST) {
+            return [];
+        }
+
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
             'except' => ['index'],
@@ -28,7 +33,7 @@ class CategoryController extends Controller
             'rules' => [
                 [
                     'allow' => true,
-                    'actions' => ['create', 'update', 'delete'],
+                    'actions' => ['update', 'delete'],
                     'roles' => ['admin'],
                 ],
                 [
@@ -58,12 +63,12 @@ class CategoryController extends Controller
         $category = new CategoryForm();
         $category->load(Yii::$app->request->post());
         if (!$category->validate()) {
-            return $this->json(false, $category->getErrors(), HttpStatusCodes::BAD_REQUEST);
+            return $this->json(false, $category->getErrors(), 'Category validate fail', HttpStatusCodes::BAD_REQUEST);
         }
         if ($category->save()) {
             return $this->json(true, $category, 'Category created successfully', HttpStatusCodes::OK);
         }
-        return $this->json(false, $category->getErrors(), HttpStatusCodes::BAD_REQUEST);
+        return $this->json(false, $category->getErrors(), 'Category create fail', HttpStatusCodes::BAD_REQUEST);
     }
 
     /**

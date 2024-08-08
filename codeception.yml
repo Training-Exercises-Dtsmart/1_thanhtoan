@@ -1,17 +1,30 @@
 actor: Tester
 bootstrap: _bootstrap.php
 paths:
-    tests: tests
-    output: tests/_output
-    data: tests/_data
-    helpers: tests/_support
+  tests: tests
+  output: tests/_output
+  data: tests/_data
+  helpers: tests/_support
 settings:
-    memory_limit: 1024M
-    colors: true
+  memory_limit: 1024M
+  colors: true
 modules:
-    config:
-        Yii2:
-            configFile: 'config/test.php'
+  enabled:
+  config:
+    Yii2:
+      configFile: 'config/test.php'
+
+suites:
+  api:
+    actor: ApiTester
+    path: tests/api
+    modules:
+      enabled:
+        - \Helper\Api
+        - REST:
+            url: http://localhost:8080/api/
+            depends: PhpBrowser
+
 
 # To enable code coverage:
 #coverage:

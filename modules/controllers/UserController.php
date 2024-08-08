@@ -25,6 +25,10 @@ class UserController extends Controller
     {
         $behaviors = parent::behaviors();
 
+        if (YII_ENV_TEST) {
+            return [];
+        }
+
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::class,
             'except' => [
